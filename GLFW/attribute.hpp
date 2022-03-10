@@ -1,0 +1,25 @@
+#pragma once
+
+enum class Attribute {
+	Focused =					GLFW_FOCUSED,
+	Iconified =					GLFW_ICONIFIED,
+	Resizeable =				GLFW_RESIZABLE,
+	Decorated =					GLFW_DECORATED,
+	Iconify =					GLFW_AUTO_ICONIFY,
+	Floating =					GLFW_FLOATING,
+	Maximized =					GLFW_MAXIMIZED,
+	TransparentFramebuffer =	GLFW_TRANSPARENT_FRAMEBUFFER,
+	Hovered =					GLFW_HOVERED,
+	FocusOnShow =				GLFW_FOCUS_ON_SHOW,
+	ClientAPI =					GLFW_CLIENT_API,
+	ContextVersionMajor =		GLFW_CONTEXT_VERSION_MAJOR,
+	ContextVersionMinor =		GLFW_CONTEXT_VERSION_MINOR,
+	ContextRevision =			GLFW_CONTEXT_REVISION,
+	ContextRobustness =			GLFW_CONTEXT_ROBUSTNESS,
+	OpenGLForwardCompat =		GLFW_OPENGL_FORWARD_COMPAT,
+	OpenGLDebugContext =		GLFW_OPENGL_DEBUG_CONTEXT,
+	OpenGLProfile =				GLFW_OPENGL_PROFILE,
+	ContextReleaseBehaviour =	GLFW_CONTEXT_RELEASE_BEHAVIOR,
+	ContextNoError =			GLFW_CONTEXT_NO_ERROR,
+	CreationAPI =				GLFW_CONTEXT_CREATION_API,
+};
