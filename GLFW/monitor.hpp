@@ -17,62 +17,62 @@
 class Monitor {
 
 public:
-void GetPos(int* xpos, int* ypos)
+inline void GetPos(int* xpos, int* ypos)
 {
 	GET(Pos)(N_THIS, xpos, ypos);
 }
 
-void GetWorkarea(int* xpos, int* ypos, int* width, int* height)
+inline void GetWorkarea(int* xpos, int* ypos, int* width, int* height)
 {
 	GET(Workarea)(N_THIS, xpos, ypos, width, height);
 }
 
-void GetPhysicalSize(int* widthMM, int* heightMM)
+inline void GetPhysicalSize(int* widthMM, int* heightMM)
 {
 	GET(PhysicalSize)(N_THIS, widthMM, heightMM);
 }
 
-void GetContentScale(float* xscale, float* yscale)
+inline void GetContentScale(float* xscale, float* yscale)
 {
 	GET(ContentScale)(N_THIS, xscale, yscale);
 }
 
-const char* GetName()
+inline const char* GetName()
 {
 	return glfwGetMonitorName(N_THIS);
 }
 
-void SetUserPointer(void* pointer)
+inline void SetUserPointer(void* pointer)
 {
 	SET(UserPointer)(N_THIS, pointer);
 }
 
-void* GetUserPointer()
+inline void* GetUserPointer()
 {
 	return GET(UserPointer)(N_THIS);
 }
 
-const VideoMode* GetVideoModes(int* count)
+inline const VideoMode* GetVideoModes(int* count)
 {
 	return reinterpret_cast<const VideoMode*>(GET_NO_MON(VideoModes)(N_THIS, count));
 }
 
-const VideoMode* GetVideoMode()
+inline const VideoMode* GetVideoMode()
 {
 	return reinterpret_cast<const VideoMode*>(GET_NO_MON(VideoMode)(N_THIS));
 }
 
-void SetGamma(float gamma)
+inline void SetGamma(float gamma)
 {
 	SET_NO_MON(Gamma)(N_THIS, gamma);
 }
 
-const GammaRamp* GetGammaRamp()
+inline const GammaRamp* GetGammaRamp()
 {
 	return reinterpret_cast<const GammaRamp*>(GET_NO_MON(GammaRamp)(N_THIS));
 }
 
-void SetGammaRamp(const GammaRamp* ramp)
+inline void SetGammaRamp(const GammaRamp* ramp)
 {
 	SET_NO_MON(GammaRamp)(N_THIS, reinterpret_cast<const GLFWgammaramp*>(ramp));
 }

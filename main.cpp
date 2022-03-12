@@ -5,8 +5,12 @@
 
 #include "glfw.hpp"
 
+#include "keyboard.hpp"
 
 using namespace GLFW;
+using namespace Motueur;
+
+//namespace Motueur {
 
 int main() {
 
@@ -35,10 +39,27 @@ int main() {
 
     window->MakeContextCurrent();
 
+    glewInit();
+    Keyboard::init(window);
+
     // window->SetInputMode(InputMode::StickyKeys, true);
 
-    while(window->GetKey(GLFW::Key::Escape) != InputAction::Press && !window->ShouldClose()) {
+    glViewport(0, 0, 800, 600);
+
+    bool should_close = false;
+
+    while(!should_close) {
         GLFW::PollEvents();
+        Keyboard::next_frame();
+
+        if (Keyboard::is_pressing(Key::Escape) || window->ShouldClose())
+        {
+            should_close = true;
+            continue; // on revient au début de la boucle pour qu'elle ce quitte proprement.
+        }
+
+        glClearColor(1.0F, 1.0F, 0.0F, 1.0F);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         window->SwapBuffers();
     }
@@ -47,3 +68,5 @@ int main() {
 
     return 0;
 }
+
+//} // namespace Motueur
