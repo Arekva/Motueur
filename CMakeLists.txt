@@ -3,7 +3,7 @@ project(Motueur)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Motueur main.cpp keyboard.cpp keyboard.hpp)
+add_executable(Motueur main.cpp keyboard.cpp keyboard.hpp vertex.hpp mesh.cpp mesh.hpp)
 
 include(cmake/glew.cmake)
 

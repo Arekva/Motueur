@@ -1,23 +1,20 @@
 #include <iostream>
 
-#include <glm/glm.hpp>
 #include <GL/glew.h>
 
 #include "glfw.hpp"
 
 #include "keyboard.hpp"
+#include "mesh.hpp"
+
 
 using namespace GLFW;
 using namespace Motueur;
 
-//namespace Motueur {
-
-int main() {
-
-    if(!GLFW::Init())
-    {
-        std::cout << "Failed to init GLFW\n" << std::endl;
-        return -1;
+bool init_glfw() {
+    if (!GLFW::Init()){
+        std::cout << "Failed to init GLFW." << std::endl;
+        return false;
     }
 
     // OpenGL 4.5
@@ -29,6 +26,29 @@ int main() {
     GLFW::WindowHint::OpenGLForwardCompat(true);
     GLFW::WindowHint::OpenGLProfile(GLFW::OpenGLProfile::Core);
 
+    return true;
+}
+
+bool startup() {
+    // glfw
+    if(!init_glfw()) return false;
+
+    // glew
+    glewInit();
+
+    // engine
+    Mesh::init();
+
+    return true;
+}
+
+void shutdown() {
+    Mesh::terminate();
+
+    GLFW::Terminate();
+}
+
+void run() {
     auto win_handle = std::make_unique<GLFW::WindowInstance>(
         800,
         600,
@@ -39,10 +59,7 @@ int main() {
 
     window->MakeContextCurrent();
 
-    glewInit();
     Keyboard::init(window);
-
-    // window->SetInputMode(InputMode::StickyKeys, true);
 
     glViewport(0, 0, 800, 600);
 
@@ -63,10 +80,14 @@ int main() {
 
         window->SwapBuffers();
     }
+}
 
-    GLFW::Terminate();
+int main() {
+    if(!startup()) return -1;
+
+    run();
+
+    shutdown();
 
     return 0;
 }
-
-//} // namespace Motueur
