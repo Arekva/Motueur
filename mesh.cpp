@@ -4,13 +4,15 @@
 
 using namespace Motueur;
 
+GLuint Mesh::_vaos[1];
+
 inline GLuint Mesh::get_standard_vao() { return _vaos[0]; }
 
 void Mesh::init() { create_vaos(); }
 void Mesh::terminate() { glDeleteVertexArrays(1, _vaos); }
 
 void Mesh::create_vaos() {
-    // création des vertex array buffers (en gros ce qui dis comment mettre les vertex dans le shader)
+    // création des vertex array buffers (en gros ce qui dis comment mettre les vertex dans le shader
     glCreateVertexArrays(1, _vaos);
 
     // définition des attributs standards du moteur:

@@ -8,6 +8,7 @@ namespace Motueur {
 class Mesh {
 private:
     static GLuint _vaos[1]; // VAO = Vertex Attribute Object
+
     static inline GLuint get_standard_vao();
     static void create_vaos();
 

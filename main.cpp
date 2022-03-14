@@ -33,11 +33,9 @@ bool startup() {
     // glfw
     if(!init_glfw()) return false;
 
-    // glew
-    glewInit();
 
-    // engine
-    Mesh::init();
+
+
 
     return true;
 }
@@ -58,6 +56,12 @@ void run() {
     Window* window = win_handle->GetAPI();
 
     window->MakeContextCurrent();
+
+    // glew
+    glewInit();
+
+    // engine
+    Mesh::init();
 
     Keyboard::init(window);
 
