@@ -69,6 +69,9 @@ void run() {
         GLFW::PollEvents();
         Keyboard::next_frame();
 
+        if(Keyboard::is_pressing(Key::Z))
+        {
+        }
         if (Keyboard::is_pressing(Key::Escape) || window->ShouldClose())
         {
             should_close = true;
