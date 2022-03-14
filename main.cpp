@@ -1,15 +1,20 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 
 #include <GL/glew.h>
 
 #include "glfw.hpp"
-
 #include "keyboard.hpp"
 #include "mesh.hpp"
+#include "camera.hpp"
 
 
 using namespace GLFW;
 using namespace Motueur;
+
+int width = 800;
+int heigth = 600;
 
 bool init_glfw() {
     if (!GLFW::Init()){
@@ -50,10 +55,18 @@ void shutdown() {
 
 void run() {
     auto win_handle = std::make_unique<GLFW::WindowInstance>(
-        800,
-        600,
+        width,
+        heigth,
         "Atom"
     );
+    camera c;
+
+    c.position = glm::vec3(0, 0, 0);
+    c.horizontalRot = 3.14f;
+    c.verticalRot = 0.0;
+    c.direction = glm::vec3(cos(c.verticalRot) * sin(c.horizontalRot), sin(c.verticalRot), cos(c.verticalRot) * cos(c.horizontalRot));
+    c.right = glm::vec3(sin(c.verticalRot - M_PI / 2.0f), 0.0f, cos(c.verticalRot - M_PI / 2.0f));
+    c.up = glm::cross(c.right, c.direction);
 
     Window* window = win_handle->GetAPI();
 
@@ -77,6 +90,7 @@ void run() {
             should_close = true;
             continue; // on revient au début de la boucle pour qu'elle ce quitte proprement.
         }
+        if (true);
 
         glClearColor(1.0F, 1.0F, 0.0F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT);
