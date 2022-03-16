@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef SDL_config_wrapper_h
+#define main main() { printf("MERCI DE NE PAS UTILISER SDL!!!\n"); } int non
+#endif
+
 #include <GLFW/glfw3.h>
 
 namespace GLFW {

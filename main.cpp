@@ -4,8 +4,13 @@
 
 #include "glfw.hpp"
 
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+
 #include "keyboard.hpp"
 #include "mesh.hpp"
+#include "time.hpp"
 
 
 using namespace GLFW;
@@ -29,49 +34,70 @@ bool init_glfw() {
     return true;
 }
 
-bool startup() {
+bool startup(GLFW::WindowInstance** win_handle) {
     // glfw
     if(!init_glfw()) return false;
 
+    GLFW::WindowInstance* internal_handle = new GLFW::WindowInstance(800,600,"Motueur");
+    *win_handle = internal_handle;
 
+    //if((win_handle = new GLFW::WindowInstance(800,600,"Motueur")) == nullptr) return false;
 
-
-
-    return true;
-}
-
-void shutdown() {
-    Mesh::terminate();
-
-    GLFW::Terminate();
-}
-
-void run() {
-    auto win_handle = std::make_unique<GLFW::WindowInstance>(
-        800,
-        600,
-        "Atom"
-    );
-
-    Window* window = win_handle->GetAPI();
+    Window* window = internal_handle->GetAPI();
 
     window->MakeContextCurrent();
 
     // glew
     glewInit();
 
+    GLFWwindow* glfw_win = reinterpret_cast<GLFWwindow*>(window);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(glfw_win, true);
+    ImGui_ImplOpenGL3_Init();
+
+
     // engine
     Mesh::init();
 
     Keyboard::init(window);
 
+    Time::init();
+
+    return true;
+}
+
+void shutdown(GLFW::WindowInstance* win_handle) {
+    delete win_handle;
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    Mesh::terminate();
+
+    GLFW::Terminate();
+}
+
+void run(GLFW::WindowInstance* win_handle) {
+    Window* window = win_handle->GetAPI();
+    GLFWwindow* glfw_win = reinterpret_cast<GLFWwindow*>(window);
+
     glViewport(0, 0, 800, 600);
 
+    glClearColor(1.0F, 1.0F, 0.0F, 1.0F);
+
     bool should_close = false;
+
+    bool someBoolean;
+    float speed;
+
 
     while(!should_close) {
         GLFW::PollEvents();
         Keyboard::next_frame();
+        Time::next_frame();
 
         if (Keyboard::is_pressing(Key::Escape) || window->ShouldClose())
         {
@@ -79,19 +105,34 @@ void run() {
             continue; // on revient au début de la boucle pour qu'elle ce quitte proprement.
         }
 
-        glClearColor(1.0F, 1.0F, 0.0F, 1.0F);
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Begin("MyWindow");
+        ImGui::Checkbox("Boolean property", &someBoolean);
+        if(ImGui::Button("Reset Speed")) {
+            // This code is executed when the user clicks the button
+            speed = 0;
+        }
+        ImGui::SliderFloat("Speed", &speed, 0.0f, 10.0f);
+        ImGui::End();
+
         glClear(GL_COLOR_BUFFER_BIT);
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         window->SwapBuffers();
     }
 }
 
 int main() {
-    if(!startup()) return -1;
+    GLFW::WindowInstance* win_handle;
+    if(!startup(&win_handle)) return -1;
 
-    run();
+    run(win_handle);
 
-    shutdown();
+    shutdown(win_handle);
 
     return 0;
 }
