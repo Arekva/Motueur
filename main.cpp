@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/gtx/rotate_vector.hpp >
 
 #include "glfw.hpp"
 #include "keyboard.hpp"
@@ -26,6 +27,7 @@ const int height = 600;
 float movespeed = 0.1f;
 float mousespeed = 0.1f;
 const float ratio = width / height;
+double posy, posx;
 
 GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
 
@@ -218,7 +220,7 @@ void run() {
     Window* window = win_handle->GetAPI();
 
     window->MakeContextCurrent();
-
+    window->GetCursorPos(& posx, & posy);
     glfwSetInputMode(reinterpret_cast<GLFWwindow*>(win_handle.get()),GLFW_CURSOR_DISABLED, 0);
 
     // glew
@@ -327,12 +329,12 @@ void run() {
 
     glViewport(0, 0, width, height);
 
-    c.position = glm::vec3(4, 3, 3);
+    c.position = glm::vec3(2, 1, 0);
     c.up = glm::vec3(0, 1, 0);
+    c.front = glm::vec3(1, 0, 0);
     c.horizontalRot = 3.14f;
     c.verticalRot = 0.0;
-    glm::vec3 direction;
-    glm::vec3 right;
+    c.right = glm::rotateY(c.front, (float)-M_PI / 2);
 
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
@@ -353,25 +355,41 @@ void run() {
     while (!should_close) {
         GLFW::PollEvents();
         Keyboard::next_frame();
-        direction = glm::vec3(cos(c.verticalRot) * sin(c.horizontalRot), sin(c.verticalRot), cos(c.verticalRot) * cos(c.horizontalRot));
-        right = glm::vec3(sin(c.verticalRot - M_PI / 2.0f), 0.0f, cos(c.verticalRot - M_PI / 2.0f));
-        
+        window->GetCursorPos(&posx, &posy);
         if (Keyboard::is_pressed(Key::W))
         {
-            c.position = c.position + direction * movespeed;
+            c.position = c.position + c.front * movespeed;
         }
         if (Keyboard::is_pressed(Key::S))
         {
-            c.position = c.position - direction * movespeed;
+            c.position = c.position - c.front * movespeed;
         }
         if (Keyboard::is_pressed(Key::A))
         {
-            c.position = c.position - right * movespeed;
+            c.position = c.position - c.right * movespeed;
         }
         if (Keyboard::is_pressed(Key::D))
         {
-            c.position = c.position + right * movespeed;
+            c.position = c.position + c.right * movespeed;
         }
+        if (Keyboard::is_pressed(Key::LeftShift))
+        {
+            c.position = c.position - c.up * movespeed;
+        }
+        if (Keyboard::is_pressed(Key::Space))
+        {
+            c.position = c.position + c.up * movespeed;
+        }
+
+        float relX = posx - width / 2;
+
+        if (abs(relX) > FLT_EPSILON)
+        {
+            c.front = glm::rotate(c.front, relX  / glm::pi<float>(), c.up);
+            
+            window->SetCursorPos(width / 2, height / 2);
+        }
+
         if (Keyboard::is_pressing(Key::Escape) || window->ShouldClose())
         {
             should_close = true;
@@ -380,7 +398,7 @@ void run() {
 
         View = glm::lookAt(
             c.position,
-            glm::vec3(0, 0, 0),
+            c.position + c.front,
             c.up
         );
 
