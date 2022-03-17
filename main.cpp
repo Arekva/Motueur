@@ -14,9 +14,14 @@
 #include <glm/gtx/rotate_vector.hpp >
 
 #include "glfw.hpp"
+#include "camera.hpp"
 #include "keyboard.hpp"
 #include "mesh.hpp"
 #include "camera.hpp"
+
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 
 
 using namespace GLFW;
@@ -24,7 +29,7 @@ using namespace Motueur;
 
 const int width = 800;
 const int height = 600;
-float movespeed = 0.1f;
+float movespeed = 10.0f;
 float mousespeed = 0.1f;
 const float ratio = width / height;
 double posy, posx;
@@ -208,29 +213,20 @@ void shutdown() {
     GLFW::Terminate();
 }
 
-void run() {
-    auto win_handle = std::make_unique<GLFW::WindowInstance>(
-        width,
-        height,
-        "Atom"
-        );
+void run(GLFW::WindowInstance* win_handle) {
 
     camera c;
-
     Window* window = win_handle->GetAPI();
+    GLFWwindow* glfw_win = reinterpret_cast<GLFWwindow*>(window);
 
     window->MakeContextCurrent();
     window->GetCursorPos(& posx, & posy);
-    glfwSetInputMode(reinterpret_cast<GLFWwindow*>(win_handle.get()),GLFW_CURSOR_DISABLED, 0);
+    glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glew
     glewInit();
 
-    // engine
-    Mesh::init();
-
-    Keyboard::init(window);
-
+    glClearColor(1.0F, 1.0F, 0.0F, 1.0F);
     static const GLfloat g_vertex_buffer_data[] = {
     -1.0f,-1.0f,-1.0f, // triangle 1 : begin
     -1.0f,-1.0f, 1.0f,
@@ -329,25 +325,27 @@ void run() {
 
     glViewport(0, 0, width, height);
 
-    c.position = glm::vec3(2, 1, 0);
+    c.position = glm::vec3(50, 2, 50);
     c.up = glm::vec3(0, 1, 0);
-    c.front = glm::vec3(1, 0, 0);
-    c.horizontalRot = 3.14f;
-    c.verticalRot = 0.0;
-    c.right = glm::rotateY(c.front, (float)-M_PI / 2);
 
-    glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+    glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
 
     glm::mat4 View = glm::lookAt(
         c.position,
         glm::vec3(0, 0, 0), // and looks at the origin
-        c.up  // Head is up (set to 0,-1,0 to look upside-down)
+        c.up
     );
-    glm::mat4 Model = glm::mat4(1.0f);
-    glm::mat4 mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
+
+    {
+        glm::mat4 camTransform = glm::inverse(View);
+        c.right = camTransform[0];
+        c.up = camTransform[1];
+        c.front = camTransform[2];
+    }
 
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+    bool someBoolean;
+    float speed;
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -355,40 +353,46 @@ void run() {
     while (!should_close) {
         GLFW::PollEvents();
         Keyboard::next_frame();
+        Time::next_frame();
         window->GetCursorPos(&posx, &posy);
         if (Keyboard::is_pressed(Key::W))
         {
-            c.position = c.position + c.front * movespeed;
+            c.position = c.position - c.front * movespeed * Time::delta();
         }
         if (Keyboard::is_pressed(Key::S))
         {
-            c.position = c.position - c.front * movespeed;
+            c.position = c.position + c.front * movespeed * Time::delta();
         }
         if (Keyboard::is_pressed(Key::A))
         {
-            c.position = c.position - c.right * movespeed;
+            c.position = c.position - c.right * movespeed * Time::delta();
         }
         if (Keyboard::is_pressed(Key::D))
         {
-            c.position = c.position + c.right * movespeed;
+            c.position = c.position + c.right * movespeed * Time::delta();
         }
         if (Keyboard::is_pressed(Key::LeftShift))
         {
-            c.position = c.position - c.up * movespeed;
+            c.position = c.position - c.up * movespeed * Time::delta();
         }
         if (Keyboard::is_pressed(Key::Space))
         {
-            c.position = c.position + c.up * movespeed;
+            c.position = c.position + c.up * movespeed * Time::delta();
         }
 
         float relX = posx - width / 2;
+        float relY = posy - height / 2;
 
         if (abs(relX) > FLT_EPSILON)
         {
-            c.front = glm::rotate(c.front, relX  / glm::pi<float>(), c.up);
-            
-            window->SetCursorPos(width / 2, height / 2);
+            c.front = glm::rotate(c.front, -relX * Time::delta() / glm::pi<float>(), c.up);
+        } 
+        if (abs(relY) > FLT_EPSILON)
+        {
+            c.front = glm::rotate(c.front, -relY * Time::delta() / glm::pi<float>(), c.right);
+
         }
+        window->SetCursorPos(width / 2, height / 2);
 
         if (Keyboard::is_pressing(Key::Escape) || window->ShouldClose())
         {
@@ -398,13 +402,20 @@ void run() {
 
         View = glm::lookAt(
             c.position,
-            c.position + c.front,
-            c.up
+            c.position - c.front,
+            glm::vec3(0, 1, 0)
         );
 
-        glm::mat4 mvp = Projection * View * Model;
-        MatrixID = glGetUniformLocation(programID, "MVP");
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+        glm::mat4 camTransform = glm::inverse(View);
+        c.right = camTransform[0];
+
+        printf("Right : (%f,%f,%f)\n", c.right.x, c.right.y, c.right.z);
+        printf("Up    : (%f,%f,%f)\n", c.up.x, c.up.y, c.up.z);
+        printf("Front : (%f,%f,%f)\n", c.front.x, c.front.y, c.front.z);
+
+        c.up = camTransform[1];
+        c.front = camTransform[2];
+
         glClearColor(0.0f, 0.0f, 0.4f, 0.0f); 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -430,9 +441,31 @@ void run() {
             (void*)0                          // array buffer offset
         );
 
-        glDrawArrays(GL_TRIANGLES, 0, 12*3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+
+        for (size_t i = 0; i < 100; i++)
+        {
+            for (size_t j = 0; j < 100; j++)
+            {
+                glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 2, 0, j * 2));
+                glm::mat4 mvp = Projection * View * Model;
+                glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+                glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+            }
+        }
+
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Begin("MyWindow");
+
+        ImGui::Text("FPS: %f", 1.0f/Time::delta());
+
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         window->SwapBuffers();
     }

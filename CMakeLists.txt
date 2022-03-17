@@ -11,6 +11,7 @@ add_subdirectory(dep/glfw dep/glfw)
 
 set(GLFW_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dep/glfw/include)
 set(GLM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dep/glm)
+set(IMGUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dep/imgui)
 
 target_include_directories(Motueur PRIVATE
         ${GLFW_INCLUDE_DIR}
