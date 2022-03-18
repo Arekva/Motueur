@@ -437,11 +437,6 @@ void run(GLFW::WindowInstance* win_handle) {
 
         glm::mat4 camTransform = glm::inverse(View);
         c.right = camTransform[0];
-
-        printf("Right : (%f,%f,%f)\n", c.right.x, c.right.y, c.right.z);
-        printf("Up    : (%f,%f,%f)\n", c.up.x, c.up.y, c.up.z);
-        printf("Front : (%f,%f,%f)\n", c.front.x, c.front.y, c.front.z);
-
         c.up = camTransform[1];
         c.front = camTransform[2];
 
