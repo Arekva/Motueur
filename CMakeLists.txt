@@ -16,6 +16,7 @@ set(IMGUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dep/imgui)
 target_include_directories(Motueur PRIVATE
         ${GLFW_INCLUDE_DIR}
         ${GLM_INCLUDE_DIR}
+	${IMGUI_INCLUDE_DIR}
 )
 
 target_link_libraries(Motueur PRIVATE glfw opengl32 glew)
