@@ -335,6 +335,7 @@ class WindowInstance : Window {
 private:
 	Window* window;
 public:
+inline WindowInstance() { }
 inline WindowInstance(int width, int height,
 			   const char* title, 
 			   Monitor* monitor, Window* context)

@@ -14,7 +14,6 @@
 #include <glm/gtx/rotate_vector.hpp >
 
 #include "glfw.hpp"
-#include "camera.hpp"
 #include "keyboard.hpp"
 #include "mesh.hpp"
 #include "camera.hpp"
@@ -22,6 +21,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "time.hpp"
 
 
 using namespace GLFW;
@@ -196,18 +196,47 @@ bool init_glfw() {
     return true;
 }
 
-bool startup() {
+bool startup(GLFW::WindowInstance** win_handle) {
     // glfw
     if(!init_glfw()) return false;
 
+    GLFW::WindowInstance* internal_handle = new GLFW::WindowInstance(800,600,"Motueur");
+    *win_handle = internal_handle;
+
+    //if((win_handle = new GLFW::WindowInstance(800,600,"Motueur")) == nullptr) return false;
+
+    Window* window = internal_handle->GetAPI();
+
+    window->MakeContextCurrent();
+
+    // glew
+    glewInit();
+
+    GLFWwindow* glfw_win = reinterpret_cast<GLFWwindow*>(window);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(glfw_win, true);
+    ImGui_ImplOpenGL3_Init();
 
 
+    // engine
+    Mesh::init();
 
+    Keyboard::init(window);
+
+    Time::init();
 
     return true;
 }
 
-void shutdown() {
+void shutdown(GLFW::WindowInstance* win_handle) {
+    delete win_handle;
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     Mesh::terminate();
 
     GLFW::Terminate();
@@ -467,17 +496,21 @@ void run(GLFW::WindowInstance* win_handle) {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         window->SwapBuffers();
     }
 }
 
 
 int main() {
-    if(!startup()) return -1;
+    GLFW::WindowInstance* win_handle;
+    if(!startup(&win_handle)) return -1;
 
-    run();
+    run(win_handle);
 
-    shutdown();
+    shutdown(win_handle);
 
     return 0;
 }
