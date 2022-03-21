@@ -34,6 +34,7 @@ float movespeed = 10.0f;
 float mousespeed = 0.1f;
 const float ratio = width / height;
 double posy, posx;
+float lightX = 0.0, lightY = 2.0, lightZ = 5.0;
 
 GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
 
@@ -251,7 +252,7 @@ void run(GLFW::WindowInstance* win_handle) {
 
     window->MakeContextCurrent();
     window->GetCursorPos(& posx, & posy);
-    glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glew
     glewInit();
@@ -309,7 +310,53 @@ void run(GLFW::WindowInstance* win_handle) {
 
     };
 
-    static const GLfloat g_uv_buffer_data[] = {
+    static const GLfloat normals[] =
+    {
+        0,1,0,
+        0,1,0,
+        0,1,0,
+        0,1,0,
+        0,1,0,
+        0,1,0,
+
+        0,-1,0,
+        0,-1,0,
+        0,-1,0,
+        0,-1,0,
+        0,-1,0,
+        0,-1,0,
+
+        -1,0,0,
+        -1,0,0,
+        -1,0,0,
+        -1,0,0,
+        -1,0,0,
+        -1,0,0,
+
+        1,0,0,
+        1,0,0,
+        1,0,0,
+        1,0,0,
+        1,0,0,
+        1,0,0,
+
+        0,0,1,
+        0,0,1,
+        0,0,1,
+        0,0,1,
+        0,0,1,
+        0,0,1,
+
+        0,0,-1,
+        0,0,-1,
+        0,0,-1,
+        0,0,-1,
+        0,0,-1,
+        0,0,-1
+    };
+
+    static const GLfloat g_uv_buffer_data[] = 
+    {
         0.0, 0.0,
         0.0, 1.0,
         1.0, 0.0,
@@ -368,13 +415,18 @@ void run(GLFW::WindowInstance* win_handle) {
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data), g_uv_buffer_data, GL_STATIC_DRAW);
 
+    GLuint normalbuffer;
+    glGenBuffers(1, &normalbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+
     GLuint programID = LoadShaders("../Motueur/shaders/VertexShader.glsl", "../Motueur/shaders/FragmentShader.glsl");
     
     glUseProgram(programID);
 
     glViewport(0, 0, width, height);
 
-    c.position = glm::vec3(10, 2, 10);
+    c.position = glm::vec3(lightX, lightY, lightZ);
     c.up = glm::vec3(0, 1, 0);
 
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
@@ -384,6 +436,11 @@ void run(GLFW::WindowInstance* win_handle) {
         glm::vec3(0, 0, 0), // and looks at the origin
         c.up
     );
+
+
+    glm::vec3 Light = { 0,2,5 };
+    glm::vec4 LightColor = { 1,1,1,1};
+
 
     {
         glm::mat4 camTransform = glm::inverse(View);
@@ -395,6 +452,11 @@ void run(GLFW::WindowInstance* win_handle) {
     Texture t("D:\\Users\\tvendeville\\GitHub\\Motueur\\Textures\\test.png");
 
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+    GLuint ViewID = glGetUniformLocation(programID, "View");
+    GLuint ModelID = glGetUniformLocation(programID, "Model");
+    GLuint LightID = glGetUniformLocation(programID, "LightWorld");
+    GLuint LightColorID = glGetUniformLocation(programID, "LightColor");
+
     bool someBoolean;
     float speed;
 
@@ -436,14 +498,14 @@ void run(GLFW::WindowInstance* win_handle) {
 
         if (abs(relX) > FLT_EPSILON)
         {
-            c.front = glm::rotate(c.front, -relX * Time::delta() / glm::pi<float>(), c.up);
+           // c.front = glm::rotate(c.front, -relX * Time::delta() / glm::pi<float>(), c.up);
         } 
         if (abs(relY) > FLT_EPSILON)
         {
-            c.front = glm::rotate(c.front, -relY * Time::delta() / glm::pi<float>(), c.right);
+           // c.front = glm::rotate(c.front, -relY * Time::delta() / glm::pi<float>(), c.right);
 
         }
-        window->SetCursorPos(width / 2, height / 2);
+       // window->SetCursorPos(width / 2, height / 2);
 
         if (Keyboard::is_pressing(Key::Escape) || window->ShouldClose())
         {
@@ -487,13 +549,30 @@ void run(GLFW::WindowInstance* win_handle) {
             (void*)0                          // array buffer offset
         );
 
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+        glVertexAttribPointer(
+            2,                  // attribute . No particular reason for 0, but must match the layout in the shader.
+            3,                  // size
+            GL_FLOAT,           // type
+            GL_FALSE,           // normalized?
+            0,                  // stride
+            (void*)0            // array buffer offset
+        );
 
-        for (size_t i = 0; i < 100; i++)
+        glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
+        glUniform3fv(LightID, 1, (float*)&Light);
+        glUniform4fv(LightColorID, 1, (float*) & LightColor);
+        
+
+        for (size_t i = 0; i < 10; i++)
         {
-            for (size_t j = 0; j < 100; j++)
+            for (size_t j = 0; j < 10; j++)
             {
                 glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 2, 0, j * 2));
+
                 glm::mat4 mvp = Projection * View * Model;
+                glUniformMatrix4fv(ModelID, 1, GL_FALSE, glm::value_ptr(Model));
                 glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
                 glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
             }
@@ -508,7 +587,9 @@ void run(GLFW::WindowInstance* win_handle) {
         ImGui::Begin("MyWindow");
 
         ImGui::Text("FPS: %f", 1.0f/Time::delta());
-
+        ImGui::SliderFloat("lightX", &lightX, -10.0f, 10.0f);
+        ImGui::SliderFloat("lightY", &lightY, -10.0f, 10.0f);
+        ImGui::SliderFloat("lightZ", &lightZ, -10.0f, 10.0f);
         ImGui::End();
 
         ImGui::Render();
@@ -516,6 +597,8 @@ void run(GLFW::WindowInstance* win_handle) {
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        Light = glm::vec3{ lightX,lightY,lightZ };
 
         window->SwapBuffers();
     }
