@@ -3,7 +3,7 @@
 #include <memory>
 #include <unordered_map>
 #include "shader.hpp"
-// #include "texture.hpp"
+#include "texture.hpp"
 
 namespace Motueur {
 
@@ -27,19 +27,15 @@ private:
 
     const std::unordered_map<GLenum, UniformSetter> setters =
     {
-        // 1D
     { GL_INT       , [] (Material* material, GLint location, void* data) -> void { glUniform1i       (location, *(int*)data  );           }},
     { GL_FLOAT     , [] (Material* material, GLint location, void* data) -> void { glUniform1f       (location, *(float*)data);           }},
     { GL_FLOAT_MAT4, [] (Material* material, GLint location, void* data) -> void { glUniformMatrix4fv(location, 1, false, (float*)data ); }},
     { GL_SAMPLER_2D, [] (Material* material, GLint location, void* data) -> void {
         const int index = material->_textureIndex;
 
-        // ((Texture*)data)->Use(GL_TEXTURE0 + index);
+        ((Texture*)data)->Use(GL_TEXTURE0 + index);
         glUniform1i(location, index);
     }}
-
-
-        // 2D
     };
 
     std::shared_ptr<Shader>                       _shader;
@@ -50,6 +46,9 @@ public :
     Material(std::shared_ptr<Shader> shader);
 
     void Use();
+
+    template<typename T>
+    void SetData(const char* name, T* data);
 };
 
 }

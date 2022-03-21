@@ -20,12 +20,22 @@ Material::Material(std::shared_ptr<Shader> shader) {
 }
 
 void Material::Use() {
+    _textureIndex = 0;
+
     for (const auto& uniform: _data) {
         MaterialData data = uniform.second;
         if (data.Data != nullptr) { // update uniforms
             data.Setter(this, data.Uniform.Location, data.Data);
+
+            if (data.Uniform.Type == GL_SAMPLER_2D) {
+                ++_textureIndex;
+            }
         }
     }
 }
 
+    template<typename T>
+    void Material::SetData(const char *name, T *data) {
+        _data.at(name).Data = data;
+    }
 }
