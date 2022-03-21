@@ -11,10 +11,19 @@
 #include "keyboard.hpp"
 #include "mesh.hpp"
 #include "time.hpp"
+#include "shader.hpp"
+#include "material.hpp"
 
 
 using namespace GLFW;
 using namespace Motueur;
+
+void init_imgui(GLFWwindow* window) {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init();
+}
 
 bool init_glfw() {
     if (!GLFW::Init()){
@@ -35,13 +44,10 @@ bool init_glfw() {
 }
 
 bool startup(GLFW::WindowInstance** win_handle) {
-    // glfw
     if(!init_glfw()) return false;
 
     GLFW::WindowInstance* internal_handle = new GLFW::WindowInstance(800,600,"Motueur");
     *win_handle = internal_handle;
-
-    //if((win_handle = new GLFW::WindowInstance(800,600,"Motueur")) == nullptr) return false;
 
     Window* window = internal_handle->GetAPI();
 
@@ -50,13 +56,7 @@ bool startup(GLFW::WindowInstance** win_handle) {
     // glew
     glewInit();
 
-    GLFWwindow* glfw_win = reinterpret_cast<GLFWwindow*>(window);
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(glfw_win, true);
-    ImGui_ImplOpenGL3_Init();
-
+    init_imgui(reinterpret_cast<GLFWwindow*>(window));
 
     // engine
     Mesh::init();
@@ -67,6 +67,7 @@ bool startup(GLFW::WindowInstance** win_handle) {
 
     return true;
 }
+
 
 void shutdown(GLFW::WindowInstance* win_handle) {
     delete win_handle;
@@ -93,6 +94,14 @@ void run(GLFW::WindowInstance* win_handle) {
     bool someBoolean;
     float speed;
 
+    {
+        std::shared_ptr<Shader> shader = std::make_unique<Shader>(
+                "C:/Users/Arthur/Documents/Code/Repos/cpp/Motueur/assets/shaders/standard");
+
+        std::unique_ptr<Material> material = std::make_unique<Material>(shader);
+
+
+    }
 
     while(!should_close) {
         GLFW::PollEvents();

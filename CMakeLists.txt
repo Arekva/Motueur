@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 project(Motueur)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 
 add_executable(
         Motueur main.cpp keyboard.cpp keyboard.hpp vertex.hpp mesh.cpp mesh.hpp time.cpp time.hpp
-)
+        material.cpp material.hpp shader.cpp shader.hpp)
 
 
 include(cmake/glew.cmake)

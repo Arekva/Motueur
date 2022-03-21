@@ -72,3 +72,7 @@ Mesh::Mesh(const char *path) {
 inline Mesh::~Mesh() {
     glDeleteBuffers(2, _bufferObjects);
 }
+
+void Mesh::Draw(GLuint transform_buffer, size_t transform_count) {
+    // bind to "transforms"
+}
