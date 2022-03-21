@@ -3,6 +3,7 @@ project(Motueur)
 
 set(CMAKE_CXX_STANDARD 20)
 
+
 add_executable(
         Motueur main.cpp keyboard.cpp keyboard.hpp vertex.hpp mesh.cpp mesh.hpp time.cpp time.hpp
         material.cpp material.hpp shader.cpp shader.hpp)
@@ -15,8 +16,6 @@ add_subdirectory(dep/glfw dep/glfw)
 set(GLFW_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dep/glfw/include)
 set(GLM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dep/glm)
 set(IMGUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dep/imgui)
-
-
 target_include_directories(Motueur PRIVATE
     ${GLFW_INCLUDE_DIR}
     ${GLM_INCLUDE_DIR}
