@@ -13,7 +13,6 @@ uniform mat4 MVP;
 uniform mat4 View;
 uniform mat4 Model;
 uniform vec3 LightWorld;
-uniform vec4 LightColor;
 
 void main(){
     
