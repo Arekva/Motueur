@@ -7,16 +7,26 @@ namespace Motueur {
 Material::Material(std::shared_ptr<Shader> shader) {
     GLint uniform_count;
     std::unordered_map<std::string, ShaderUniformData>* uniforms = shader->get_bindings(&uniform_count);
+
+    _data_memory = malloc(256 * uniform_count);
+
     _data.reserve(uniform_count);
+
+    int i = 0;
     for (const auto& uniform: *uniforms) {
         MaterialData data = {
             .Uniform = uniform.second,
             .Setter  = setters.at(uniform.second.Type),
-            .Data    = nullptr
+            .Data    = (char*)_data_memory + 256 * i
         };
         _data.insert({uniform.first, data});
+        ++i;
     }
     _shader = std::move(shader);
+}
+
+Material::~Material() {
+    free(_data_memory);
 }
 
 void Material::Use() {
@@ -34,8 +44,4 @@ void Material::Use() {
     }
 }
 
-    template<typename T>
-    void Material::SetData(const char *name, T *data) {
-        _data.at(name).Data = data;
-    }
 }
