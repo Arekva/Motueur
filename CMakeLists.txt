@@ -5,9 +5,10 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(
         Motueur main.cpp keyboard.cpp keyboard.hpp vertex.hpp mesh.cpp mesh.hpp time.cpp time.hpp
-        material.cpp material.hpp shader.cpp shader.hpp texture.cpp texture.hpp)
+        material.cpp material.hpp shader.cpp shader.hpp texture.cpp texture.hpp Model.hpp Model.cpp)
 
 include(cmake/glew.cmake)
+include(cmake/assimp.cmake)
 
 add_subdirectory(dep/glfw dep/glfw)
 
@@ -37,4 +38,4 @@ target_include_directories(imgui PUBLIC dep/imgui/ dep/imgui/backends/)
 
 # target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
 
-target_link_libraries(Motueur PRIVATE glfw opengl32 glew imgui)
+target_link_libraries(Motueur PRIVATE glfw opengl32 glew imgui assimp)
