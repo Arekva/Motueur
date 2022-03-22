@@ -251,7 +251,7 @@ void run(GLFW::WindowInstance* win_handle) {
 
     window->MakeContextCurrent();
     window->GetCursorPos(& posx, & posy);
-    glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glew
     glewInit();
@@ -415,11 +415,10 @@ void run(GLFW::WindowInstance* win_handle) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data), g_uv_buffer_data, GL_STATIC_DRAW);
 
     GLuint normalbuffer;
-    
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
-    GLuint programID = LoadShaders("C:\\Users\\Arthur\\Documents\\Code\\Repos\\cpp\\Motueur\\assets\\shaders\\thomas\\shader.vert", "C:\\Users\\Arthur\\Documents\\Code\\Repos\\cpp\\Motueur\\assets\\shaders\\thomas\\shader.frag");
+    GLuint programID = LoadShaders("assets/shaders/thomas/shader.vert", "assets/shaders/thomas/shader.frag");
 
     glUseProgram(programID);
 
@@ -448,7 +447,7 @@ void run(GLFW::WindowInstance* win_handle) {
         c.front = camTransform[2];
     
 
-    Texture t("C:\\Users\\Arthur\\Documents\\Code\\Repos\\cpp\\Motueur\\Textures\\test.png");
+    Texture t("assets/textures/test.png");
 
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
     GLuint ViewID = glGetUniformLocation(programID, "View");
@@ -505,14 +504,14 @@ void run(GLFW::WindowInstance* win_handle) {
 
         if (abs(relX) > FLT_EPSILON)
         {
-            c.front = glm::rotate(c.front, -relX * Time::delta() / glm::pi<float>(), c.up);
+           // c.front = glm::rotate(c.front, -relX * Time::delta() / glm::pi<float>(), c.up);
         } 
         if (abs(relY) > FLT_EPSILON)
         {
-            c.front = glm::rotate(c.front, -relY * Time::delta() / glm::pi<float>(), c.right);
+           // c.front = glm::rotate(c.front, -relY * Time::delta() / glm::pi<float>(), c.right);
 
         }
-        window->SetCursorPos(width / 2, height / 2);
+       // window->SetCursorPos(width / 2, height / 2);
 
         if (Keyboard::is_pressing(Key::Escape) || window->ShouldClose())
         {
