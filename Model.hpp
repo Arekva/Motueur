@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include <../../assimp/include/assimp/Importer.hpp>
 #include <../../assimp/include/assimp/scene.h>
@@ -14,7 +14,7 @@ class LoadModel
 
   public:
       ///*  Fonctions   */
-      bool loadModel(
+      static bool loadModel(
           const char* path,
           vector<unsigned short>& indices,
           vector<glm::vec3>& vertices,

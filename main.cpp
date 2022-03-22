@@ -26,8 +26,13 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
+#include "Model.hpp"
+
 using namespace GLFW;
 using namespace Motueur;
+
+
+
 
 void init_imgui(GLFWwindow* window) {
     IMGUI_CHECKVERSION();
@@ -245,7 +250,7 @@ void shutdown(GLFW::WindowInstance* win_handle) {
 }
 
 void run(GLFW::WindowInstance* win_handle) {
-
+    LoadModel m;
     camera c;
     Window* window = win_handle->GetAPI();
     GLFWwindow* glfw_win = reinterpret_cast<GLFWwindow*>(window);
@@ -254,7 +259,7 @@ void run(GLFW::WindowInstance* win_handle) {
     window->GetCursorPos(& posx, & posy);
 
     glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    mouseActive == false;
+    mouseActive = false;
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -263,6 +268,13 @@ void run(GLFW::WindowInstance* win_handle) {
     glewInit();
 
     glClearColor(1.0F, 1.0F, 0.0F, 1.0F);
+
+    //models 3D
+std:vector<unsigned short> indices;
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> uvs;
+    std::vector<glm::vec3> normalsobj; // Won't be used at the moment.
+    bool res = m.loadModel("D:\\Users\\hmarseu\\Motueur\\assets\\models\\Echelle.fbx", indices, vertices, uvs, normalsobj);
 
     static const GLfloat g_vertex_buffer_data[] = {
         // up
@@ -598,7 +610,7 @@ void run(GLFW::WindowInstance* win_handle) {
                 glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
             }
         }
-
+       
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
