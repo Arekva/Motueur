@@ -19,15 +19,22 @@
 #include "camera.hpp"
 #include "time.hpp"
 #include "texture.hpp"
+#include "shader.hpp"
+#include "material.hpp"
 
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
-
 using namespace GLFW;
 using namespace Motueur;
 
+void init_imgui(GLFWwindow* window) {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init();
+}
 const int width = 800;
 const int height = 600;
 float movespeed = 10.0f;
@@ -199,13 +206,10 @@ bool init_glfw() {
 }
 
 bool startup(GLFW::WindowInstance** win_handle) {
-    // glfw
     if(!init_glfw()) return false;
 
     GLFW::WindowInstance* internal_handle = new GLFW::WindowInstance(800,600,"Motueur");
     *win_handle = internal_handle;
-
-    //if((win_handle = new GLFW::WindowInstance(800,600,"Motueur")) == nullptr) return false;
 
     Window* window = internal_handle->GetAPI();
 
@@ -214,13 +218,7 @@ bool startup(GLFW::WindowInstance** win_handle) {
     // glew
     glewInit();
 
-    GLFWwindow* glfw_win = reinterpret_cast<GLFWwindow*>(window);
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(glfw_win, true);
-    ImGui_ImplOpenGL3_Init();
-
+    init_imgui(reinterpret_cast<GLFWwindow*>(window));
 
     // engine
     Mesh::init();
@@ -231,6 +229,7 @@ bool startup(GLFW::WindowInstance** win_handle) {
 
     return true;
 }
+
 
 void shutdown(GLFW::WindowInstance* win_handle) {
     delete win_handle;
@@ -421,6 +420,7 @@ void run(GLFW::WindowInstance* win_handle) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
 
     GLuint programID = LoadShaders("../Motueur/shaders/VertexShader.glsl", "../Motueur/shaders/FragmentShader.glsl");
+
     
     glUseProgram(programID);
 
@@ -449,7 +449,7 @@ void run(GLFW::WindowInstance* win_handle) {
         c.front = camTransform[2];
     
 
-    Texture t("D:\\Users\\tvendeville\\GitHub\\Motueur\\Textures\\test.png");
+    Texture t("C:\\Users\\Arthur\\Documents\\Code\\Repos\\cpp\\Motueur\\Textures\\test.png");
 
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
     GLuint ViewID = glGetUniformLocation(programID, "View");
@@ -460,10 +460,18 @@ void run(GLFW::WindowInstance* win_handle) {
     bool someBoolean;
     float speed;
 
+    {
+        std::shared_ptr<Shader> shader = std::make_unique<Shader>(
+                "C:/Users/Arthur/Documents/Code/Repos/cpp/Motueur/assets/shaders/standard");
+
+        std::unique_ptr<Material> material = std::make_unique<Material>(shader);
+
+
+    }
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     bool should_close = false;
-    while (!should_close) {
+    while(!should_close) {
         GLFW::PollEvents();
         Keyboard::next_frame();
         Time::next_frame();

@@ -7,7 +7,9 @@ public :
 	GLuint ID;
 	int width,height,bpp;
 
-	Texture(char* filename);
+	Texture(const char* filename);
 
 	~Texture();
+
+    void Use(GLint unit) const;
 };

@@ -4,7 +4,7 @@
 #include <stb_image.h>
 
 
-Texture::Texture(char * filename)
+Texture::Texture(const char * filename)
 {
 	stbi_uc* Image = stbi_load(filename, &width, &height, &bpp, 3);
 
@@ -27,4 +27,9 @@ Texture::Texture(char * filename)
 Texture::~Texture()
 {
 	glDeleteTextures(1,&ID);
+}
+
+void Texture::Use(GLint unit) const {
+    glActiveTexture(unit);
+    glBindTexture(GL_TEXTURE_2D, this->ID);
 }
