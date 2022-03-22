@@ -442,12 +442,12 @@ void run(GLFW::WindowInstance* win_handle) {
     glm::vec4 LightColor = { 1,1,1,1};
 
 
-    {
+    
         glm::mat4 camTransform = glm::inverse(View);
         c.right = camTransform[0];
         c.up = camTransform[1];
         c.front = camTransform[2];
-    }
+    
 
     Texture t("D:\\Users\\tvendeville\\GitHub\\Motueur\\Textures\\test.png");
 
@@ -587,9 +587,9 @@ void run(GLFW::WindowInstance* win_handle) {
         ImGui::Begin("MyWindow");
 
         ImGui::Text("FPS: %f", 1.0f/Time::delta());
-        ImGui::SliderFloat("lightX", &lightX, -10.0f, 10.0f);
-        ImGui::SliderFloat("lightY", &lightY, -10.0f, 10.0f);
-        ImGui::SliderFloat("lightZ", &lightZ, -10.0f, 10.0f);
+        ImGui::SliderFloat("lightX", &lightX, -50.0f, 50.0f);
+        ImGui::SliderFloat("lightY", &lightY, -50.0f, 50.0f);
+        ImGui::SliderFloat("lightZ", &lightZ, -50.0f, 50.0f);
         ImGui::End();
 
         ImGui::Render();
