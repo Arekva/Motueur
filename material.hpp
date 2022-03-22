@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <glm/glm.hpp>
 #include "shader.hpp"
 #include "texture.hpp"
 
@@ -41,14 +42,18 @@ private:
     std::shared_ptr<Shader>                       _shader;
     std::unordered_map<std::string, MaterialData> _data  ;
     int                                           _textureIndex;
+    void*                                         _data_memory;
 
 public :
     Material(std::shared_ptr<Shader> shader);
+    ~Material();
 
     void Use();
 
-    template<typename T>
-    void SetData(const char* name, T* data);
+    template<class T>
+    void SetData(const char* name, const T& data){
+        memcpy(_data.at(name).Data, &data, sizeof(T));
+    }
 };
 
 }

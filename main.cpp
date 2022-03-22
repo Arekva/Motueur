@@ -415,13 +415,11 @@ void run(GLFW::WindowInstance* win_handle) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data), g_uv_buffer_data, GL_STATIC_DRAW);
 
     GLuint normalbuffer;
-    glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glGenBuffers(1, &normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+    GLuint programID = LoadShaders("C:\\Users\\Arthur\\Documents\\Code\\Repos\\cpp\\Motueur\\assets\\shaders\\thomas\\shader.vert", "C:\\Users\\Arthur\\Documents\\Code\\Repos\\cpp\\Motueur\\assets\\shaders\\thomas\\shader.frag");
 
-    GLuint programID = LoadShaders("../Motueur/shaders/VertexShader.glsl", "../Motueur/shaders/FragmentShader.glsl");
-
-    
     glUseProgram(programID);
 
     glViewport(0, 0, width, height);
