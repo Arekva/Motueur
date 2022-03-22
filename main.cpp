@@ -445,7 +445,7 @@ void run(GLFW::WindowInstance* win_handle) {
 
 
     glm::vec3 Light = { 0,2,5 };
-    glm::vec4 LightColor = { 1,1,1,1};
+    glm::vec4 LightColor = { 1,1,1,150};
 
 
     
@@ -505,7 +505,7 @@ void run(GLFW::WindowInstance* win_handle) {
         {
             c.position = c.position + c.up * movespeed * Time::delta();
         }
-        if (Keyboard::is_pressing(Key::T))
+        if (Keyboard::is_releasing(Key::T))
         {
             if (mouseActive)
             {            
