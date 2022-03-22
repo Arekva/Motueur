@@ -464,13 +464,6 @@ void run(GLFW::WindowInstance* win_handle) {
     bool someBoolean;
     float speed;
         
-    std::shared_ptr<Shader> shader = std::make_unique<Shader>(
-                "C:/Users/Arthur/Documents/Code/Repos/cpp/Motueur/assets/shaders/standard");
-
-    std::unique_ptr<Material> material = std::make_unique<Material>(shader);
-    
-
-    
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     bool should_close = false;
