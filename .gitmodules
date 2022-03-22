@@ -13,3 +13,6 @@
 [submodule "dep/stb"]
 	path = dep/stb
 	url = https://github.com/nothings/stb.git
+[submodule "dep/assimp"]
+	path = dep/assimp
+	url = https://github.com/assimp/assimp.git
