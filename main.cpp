@@ -42,6 +42,7 @@ float mousespeed = 0.1f;
 const float ratio = width / height;
 double posy, posx;
 float lightX = 0.0, lightY = 2.0, lightZ = 5.0;
+bool mouseActive;
 
 GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
 
@@ -251,7 +252,12 @@ void run(GLFW::WindowInstance* win_handle) {
 
     window->MakeContextCurrent();
     window->GetCursorPos(& posx, & posy);
-    //glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    mouseActive == false;
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
     // glew
     glewInit();
@@ -449,7 +455,7 @@ void run(GLFW::WindowInstance* win_handle) {
         c.front = camTransform[2];
     
 
-    Texture t("C:\\Users\\Arthur\\Documents\\Code\\Repos\\cpp\\Motueur\\Textures\\test.png");
+    Texture t("../Motueur/Textures/test.png");
 
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
     GLuint ViewID = glGetUniformLocation(programID, "View");
@@ -459,19 +465,18 @@ void run(GLFW::WindowInstance* win_handle) {
 
     bool someBoolean;
     float speed;
-
-    {
-        std::shared_ptr<Shader> shader = std::make_unique<Shader>(
+        
+    std::shared_ptr<Shader> shader = std::make_unique<Shader>(
                 "C:/Users/Arthur/Documents/Code/Repos/cpp/Motueur/assets/shaders/standard");
 
-        std::unique_ptr<Material> material = std::make_unique<Material>(shader);
+    std::unique_ptr<Material> material = std::make_unique<Material>(shader);
+    
 
-
-    }
+    
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     bool should_close = false;
-    while(!should_close) {
+    while (!should_close) {
         GLFW::PollEvents();
         Keyboard::next_frame();
         Time::next_frame();
@@ -500,21 +505,38 @@ void run(GLFW::WindowInstance* win_handle) {
         {
             c.position = c.position + c.up * movespeed * Time::delta();
         }
-
-        float relX = posx - width / 2;
-        float relY = posy - height / 2;
-
-        if (abs(relX) > FLT_EPSILON)
+        if (Keyboard::is_pressing(Key::T))
         {
-           // c.front = glm::rotate(c.front, -relX * Time::delta() / glm::pi<float>(), c.up);
-        } 
-        if (abs(relY) > FLT_EPSILON)
-        {
-           // c.front = glm::rotate(c.front, -relY * Time::delta() / glm::pi<float>(), c.right);
-
+            if (mouseActive)
+            {            
+                mouseActive = false;
+                glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                window->SetCursorPos(width / 2, height / 2);
+            }
+            else {
+                if (!mouseActive)
+                {
+                    mouseActive = true;
+                    glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                    window->SetCursorPos(width / 2, height / 2);
+                }
+            }
         }
-       // window->SetCursorPos(width / 2, height / 2);
+        if (!mouseActive)
+        {        
+            float relX = posx - width / 2;
+            float relY = posy - height / 2;
+            if (abs(relX) > FLT_EPSILON)
+            {
+                c.front = glm::rotate(c.front, -relX * Time::delta() / glm::pi<float>(), c.up);
+            }
+            if (abs(relY) > FLT_EPSILON)
+            {
+                c.front = glm::rotate(c.front, -relY * Time::delta() / glm::pi<float>(), c.right);
 
+            }
+            window->SetCursorPos(width / 2, height / 2);
+        }
         if (Keyboard::is_pressing(Key::Escape) || window->ShouldClose())
         {
             should_close = true;
