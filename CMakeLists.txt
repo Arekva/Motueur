@@ -39,6 +39,7 @@ target_include_directories(imgui PUBLIC dep/imgui/ dep/imgui/backends/)
 
 target_link_libraries(Motueur PRIVATE glfw opengl32 glew imgui)
 
-add_custom_command(TARGET Motueur PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/assets/ $<TARGET_FILE_DIR:Motueur>/assets/)
+add_custom_target(copy_shaders COMMAND ${CMAKE_COMMAND}
+-E copy_directory ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:Motueur>/assets)
+
+add_dependencies(Motueur copy_shaders)
