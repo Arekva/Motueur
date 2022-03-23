@@ -131,7 +131,7 @@ std:vector<unsigned short> indices;
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normalsobj; // Won't be used at the moment.
-    bool res = m.loadModel("D:\\Users\\hmarseu\\Motueur\\assets\\models\\Echelle.fbx", indices, vertices, uvs, normalsobj);
+    bool res = m.loadModel("assets\\models\\Echelle.fbx", indices, vertices, uvs, normalsobj);
 
     static const GLfloat g_vertex_buffer_data[] = {
         // up
@@ -292,16 +292,12 @@ std:vector<unsigned short> indices;
     GLuint normalbuffer;
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-
     glBufferData(GL_ARRAY_BUFFER, normalsobj.size()*sizeof(glm::vec3), &normalsobj[0], GL_STATIC_DRAW);
 
     GLuint indicesbuffer;
     glGenBuffers(1, &indicesbuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size()* sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
-    
-    //GLuint programID = LoadShaders("assets/shaders/thomas/shader.vert", "assets/shaders/thomas/shader.frag");
-
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
 
     std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/thomas");
 
@@ -318,11 +314,8 @@ std:vector<unsigned short> indices;
         c.up
     );
 
-
     glm::vec3 Light = { 0,2,5 };
     glm::vec4 LightColor = { 1,1,1,150};
-
-
     
     glm::mat4 camTransform = glm::inverse(View);
     c.right = camTransform[0];
@@ -462,35 +455,17 @@ std:vector<unsigned short> indices;
             (void*)0            // array buffer offset
         );
 
-
-
         material->set_data("View", &View);
         material->set_data("LightWorld", &Light);
         material->set_data("LightColor", &LightColor);
-
         material->use();
-
-        //for (size_t i = 0; i < 10; i++)
-        //{
-        //    for (size_t j = 0; j < 10; j++)
-        //    {
-        //        glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 2, 0, j * 2));
-
-        //        glm::mat4 mvp = Projection * View * Model;
-        //        glUniformMatrix4fv(ModelID, 1, GL_FALSE, glm::value_ptr(Model));
-        //        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-        //        glDrawArrays(GL_TRIANGLES, 0, indices.size() * 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-        //    }
-        //}
 
         for (size_t i = 0; i < 10; i++)
         {
             for (size_t j = 0; j < 10; j++)
             {
-                glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 2, 0, j * 2));
-
+                glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 5, 0, j * 5));
                 glm::mat4 mvp = Projection * View * Model;
-
                 material->set_data("Model", &Model);
                 material->set_data("MVP", &mvp);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
