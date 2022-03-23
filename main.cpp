@@ -425,17 +425,23 @@ std:vector<unsigned short> indices;
     GLuint vertexbuffer;
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
     GLuint uvbuffer;
     glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data), g_uv_buffer_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 
     GLuint normalbuffer;
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, normalsobj.size()*sizeof(glm::vec3), &normalsobj[0], GL_STATIC_DRAW);
+
+    GLuint indicesbuffer;
+    glGenBuffers(1, &indicesbuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size()* sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+
     GLuint programID = LoadShaders("assets/shaders/thomas/shader.vert", "assets/shaders/thomas/shader.frag");
 
     glUseProgram(programID);
@@ -598,6 +604,19 @@ std:vector<unsigned short> indices;
         glUniform4fv(LightColorID, 1, (float*) & LightColor);
         
 
+        //for (size_t i = 0; i < 10; i++)
+        //{
+        //    for (size_t j = 0; j < 10; j++)
+        //    {
+        //        glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 2, 0, j * 2));
+
+        //        glm::mat4 mvp = Projection * View * Model;
+        //        glUniformMatrix4fv(ModelID, 1, GL_FALSE, glm::value_ptr(Model));
+        //        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+        //        glDrawArrays(GL_TRIANGLES, 0, indices.size() * 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+        //    }
+        //}
+
         for (size_t i = 0; i < 10; i++)
         {
             for (size_t j = 0; j < 10; j++)
@@ -607,11 +626,10 @@ std:vector<unsigned short> indices;
                 glm::mat4 mvp = Projection * View * Model;
                 glUniformMatrix4fv(ModelID, 1, GL_FALSE, glm::value_ptr(Model));
                 glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-                glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
+                glDrawElements(GL_TRIANGLES, indices.size(),GL_UNSIGNED_SHORT, (void*)0); // Starting from vertex 0; 3 vertices total -> 1 triangle
             }
         }
-       
-
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         ImGui_ImplOpenGL3_NewFrame();
