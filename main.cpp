@@ -35,11 +35,11 @@ void init_imgui(GLFWwindow* window) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
 }
-const int width = 800;
-const int height = 600;
+int width = 800;
+int height = 600;
 float movespeed = 10.0f;
 float mousespeed = 0.1f;
-const float ratio = width / height;
+const float ratio = (float)width / height;
 double posy, posx;
 float lightX = 0.0, lightY = 2.0, lightZ = 5.0;
 bool mouseActive;
@@ -99,6 +99,7 @@ void shutdown(GLFW::WindowInstance* win_handle) {
 
     GLFW::Terminate();
 }
+
 
 void run(GLFW::WindowInstance* win_handle) {
 
@@ -318,6 +319,13 @@ void run(GLFW::WindowInstance* win_handle) {
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+
+    window->SetSizeCallback([] (Window* win, int w, int h) {
+        width  = w;
+        height = h;
+        glViewport(0.0F, 0.0F, width, height);
+    });
+
     bool should_close = false;
     while (!should_close) {
         GLFW::PollEvents();
@@ -433,8 +441,11 @@ void run(GLFW::WindowInstance* win_handle) {
             (void*)0            // array buffer offset
         );
 
-        material->set_data<glm::mat4>("View", &View);
+
+
+        material->set_data("View", &View);
         material->set_data("LightWorld", &Light);
+        material->set_data("LightColor", &LightColor);
 
         material->use();
 

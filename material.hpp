@@ -37,9 +37,7 @@ private:
         glUniform1f       (location, *(float*)data);
     }},
     { GL_FLOAT_MAT4, [] (Material* material, GLint location, void* data) -> void {
-        std::cout << "set mat4" << std::endl;
-        glm::mat4 mat = *(glm::mat4*)data;
-        glUniformMatrix4fv(location, 1, false, glm::value_ptr(mat));
+        glUniformMatrix4fv(location, 1, false, glm::value_ptr(*(glm::mat4*)data));
     }},
     { GL_FLOAT_VEC3, [] (Material* material, GLint location, void* data) -> void {
         glUniform3fv      (location, 1, (float*)data);
@@ -49,7 +47,10 @@ private:
 
         ((Texture*)data)->Use(GL_TEXTURE0 + index);
         glUniform1i(location, index);
-    }}
+    }},
+    { GL_FLOAT_VEC4, [] (Material* material, GLint location, void* data) -> void {
+        glUniform4fv      (location, 1, (float*)data);
+    }},
     };
 
     std::shared_ptr<Shader>                       _shader;
