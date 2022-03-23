@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <iostream>
 #include "shader.hpp"
 #include "texture.hpp"
 
@@ -36,7 +37,9 @@ private:
         glUniform1f       (location, *(float*)data);
     }},
     { GL_FLOAT_MAT4, [] (Material* material, GLint location, void* data) -> void {
-        glUniformMatrix4fv(location, 1, false, glm::value_ptr(*(glm::mat4*)data));
+        std::cout << "set mat4" << std::endl;
+        glm::mat4 mat = *(glm::mat4*)data;
+        glUniformMatrix4fv(location, 1, false, glm::value_ptr(mat));
     }},
     { GL_FLOAT_VEC3, [] (Material* material, GLint location, void* data) -> void {
         glUniform3fv      (location, 1, (float*)data);
@@ -53,6 +56,9 @@ private:
     std::unordered_map<std::string, MaterialData> _data  ;
     int                                           _textureIndex;
     void*                                         _data_memory;
+    int                                           _id;
+
+    static int                                    _currentId;
 
 public :
     Material(std::shared_ptr<Shader> shader);
@@ -62,7 +68,13 @@ public :
 
     template<class T>
     void set_data(const char* name, const T* data){
-        memcpy(_data.at(name).Data, data, sizeof(T));
+        MaterialData mat_data = _data.at(name);
+
+        memcpy(mat_data.Data, data, sizeof(T));
+
+        if (_currentId == _id) { // directly set if current material is being used.
+            mat_data.Setter(this, mat_data.Uniform.Location, mat_data.Data);
+        }
     }
 };
 

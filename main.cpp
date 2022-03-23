@@ -43,150 +43,6 @@ const float ratio = width / height;
 double posy, posx;
 float lightX = 0.0, lightY = 2.0, lightZ = 5.0;
 
-GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
-
-    // Create the shaders
-    GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
-    // Read the Vertex Shader code from the file
-    std::string VertexShaderCode;
-    std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
-    if (VertexShaderStream.is_open()) {
-        std::stringstream sstr;
-        sstr << VertexShaderStream.rdbuf();
-        VertexShaderCode = sstr.str();
-        VertexShaderStream.close();
-    }
-    else {
-        printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", vertex_file_path);
-        //getchar();
-        return 0;
-    }
-
-    // Read the Fragment Shader code from the file
-    std::string FragmentShaderCode;
-    std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
-    if (FragmentShaderStream.is_open()) {
-        std::stringstream sstr;
-        sstr << FragmentShaderStream.rdbuf();
-        FragmentShaderCode = sstr.str();
-        FragmentShaderStream.close();
-    }
-    else {
-        printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", fragment_file_path);
-        //getchar();
-        return 0;
-    }
-
-    GLint Result = GL_FALSE;
-    int InfoLogLength;
-
-
-    // Compile Vertex Shader
-    printf("Compiling shader : %s\n", vertex_file_path);
-    char const* VertexSourcePointer = VertexShaderCode.c_str();
-    glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
-    glCompileShader(VertexShaderID);
-
-    // Check Vertex Shader
-    glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
-        glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-        printf("%s\n", &VertexShaderErrorMessage[0]);
-    }
-
-
-
-    // Compile Fragment Shader
-    printf("Compiling shader : %s\n", fragment_file_path);
-    char const* FragmentSourcePointer = FragmentShaderCode.c_str();
-    glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
-    glCompileShader(FragmentShaderID);
-
-    // Check Fragment Shader
-    glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        std::vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
-        glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-        printf("%s\n", &FragmentShaderErrorMessage[0]);
-    }
-
-
-
-    // Link the program
-    printf("Linking program\n");
-    GLuint ProgramID = glCreateProgram();
-    glAttachShader(ProgramID, VertexShaderID);
-    glAttachShader(ProgramID, FragmentShaderID);
-    glLinkProgram(ProgramID);
-
-    // Check the program
-    glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
-        glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-        printf("%s\n", &ProgramErrorMessage[0]);
-    }
-
-
-    glDetachShader(ProgramID, VertexShaderID);
-    glDetachShader(ProgramID, FragmentShaderID);
-
-    glDeleteShader(VertexShaderID);
-    glDeleteShader(FragmentShaderID);
-
-    return ProgramID;
-}
-
-void DrawCube(glm::vec3 corner1, glm::vec3 corner2)
-{
-
-    glBegin(GL_QUADS);
-    glColor4f(0.0, 1.0, 1.0, 1.0);
-
-    glVertex3f(corner1.x, corner1.y, corner1.z);
-    glVertex3f(corner1.x, corner1.y, corner2.z);
-    glVertex3f(corner1.x, corner2.y, corner2.z);
-    glVertex3f(corner1.x, corner2.y, corner1.z);
-
-    glColor4f(0.0, 0.0, 1.0, 1.0);
-    glVertex3f(corner2.x, corner1.y, corner1.z);
-    glVertex3f(corner2.x, corner1.y, corner2.z);
-    glVertex3f(corner2.x, corner2.y, corner2.z);
-    glVertex3f(corner2.x, corner2.y, corner1.z);
-
-    glColor4f(1.0, 0.0, 0.0, 0.0);
-    glVertex3f(corner1.x, corner1.y, corner1.z);
-    glVertex3f(corner1.x, corner1.y, corner2.z);
-    glVertex3f(corner2.x, corner1.y, corner2.z);
-    glVertex3f(corner2.x, corner1.y, corner1.z);
-
-    glColor4f(1.0, 0.0, 1.0, 1.0);
-    glVertex3f(corner1.x, corner2.y, corner1.z);
-    glVertex3f(corner1.x, corner2.y, corner2.z);
-    glVertex3f(corner2.x, corner2.y, corner2.z);
-    glVertex3f(corner2.x, corner2.y, corner1.z);
-
-    glColor4f(1.0, 1.0, 0.0, 1.0);
-    glVertex3f(corner1.x, corner1.y, corner1.z);
-    glVertex3f(corner1.x, corner2.y, corner1.z);
-    glVertex3f(corner2.x, corner2.y, corner1.z);
-    glVertex3f(corner2.x, corner1.y, corner1.z);
-
-    glColor4f(0.0, 1.0, 0.0, 1.0);
-    glVertex3f(corner1.x, corner1.y, corner2.z);
-    glVertex3f(corner1.x, corner2.y, corner2.z);
-    glVertex3f(corner2.x, corner2.y, corner2.z);
-    glVertex3f(corner2.x, corner1.y, corner2.z);
-
-    glEnd();
-}
-
 bool init_glfw() {
     if (!GLFW::Init()){
         std::cout << "Failed to init GLFW." << std::endl;
@@ -451,14 +307,6 @@ void run(GLFW::WindowInstance* win_handle) {
     std::unique_ptr<Material> material = std::make_unique<Material>(shader);
     material->set_data("myTextureSampler", &t);
 
-
-
-    GLuint MatrixID = glGetUniformLocation(shader->program(), "MVP");
-    GLuint ViewID = glGetUniformLocation(shader->program(), "View");
-    GLuint ModelID = glGetUniformLocation(shader->program(), "Model");
-    GLuint LightID = glGetUniformLocation(shader->program(), "LightWorld");
-    GLuint LightColorID = glGetUniformLocation(shader->program(), "LightColor");
-
     bool someBoolean;
     float speed;
 
@@ -562,17 +410,10 @@ void run(GLFW::WindowInstance* win_handle) {
             (void*)0            // array buffer offset
         );
 
-        /*material->set_data("View"      , &View      );
-        material->set_data("LightWorld", &Light     );*/
-        //material->set_data("LightColor", &LightColor);
+        material->set_data<glm::mat4>("View", &View);
+        material->set_data("LightWorld", &Light);
 
-        //material->set_data<glm::mat4>("View", &View);
         material->use();
-
-        glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
-        glUniform3fv(LightID, 1, (float*)&Light);
-        glUniform4fv(LightColorID, 1, (float*) & LightColor);
-
 
         for (size_t i = 0; i < 10; i++)
         {
@@ -582,10 +423,8 @@ void run(GLFW::WindowInstance* win_handle) {
 
                 glm::mat4 mvp = Projection * View * Model;
 
-                /*material->set_data("Model", glm::value_ptr(Model));
-                material->set_data("MVP", glm::value_ptr(mvp));*/
-                glUniformMatrix4fv(ModelID, 1, GL_FALSE, glm::value_ptr(Model));
-                glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+                material->set_data("Model", &Model);
+                material->set_data("MVP", &mvp);
 
                 glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
             }
