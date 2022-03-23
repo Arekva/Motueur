@@ -418,9 +418,8 @@ void run(GLFW::WindowInstance* win_handle) {
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
-    GLuint programID = LoadShaders("assets/shaders/thomas/shader.vert", "assets/shaders/thomas/shader.frag");
 
-    glUseProgram(programID);
+    std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/thomas");
 
     glViewport(0, 0, width, height);
 
@@ -441,31 +440,28 @@ void run(GLFW::WindowInstance* win_handle) {
 
 
     
-        glm::mat4 camTransform = glm::inverse(View);
-        c.right = camTransform[0];
-        c.up = camTransform[1];
-        c.front = camTransform[2];
+    glm::mat4 camTransform = glm::inverse(View);
+    c.right = camTransform[0];
+    c.up = camTransform[1];
+    c.front = camTransform[2];
     
 
     Texture t("assets/textures/test.png");
 
-    GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-    GLuint ViewID = glGetUniformLocation(programID, "View");
-    GLuint ModelID = glGetUniformLocation(programID, "Model");
-    GLuint LightID = glGetUniformLocation(programID, "LightWorld");
-    GLuint LightColorID = glGetUniformLocation(programID, "LightColor");
+    std::unique_ptr<Material> material = std::make_unique<Material>(shader);
+    material->set_data("myTextureSampler", &t);
+
+
+
+    GLuint MatrixID = glGetUniformLocation(shader->program(), "MVP");
+    GLuint ViewID = glGetUniformLocation(shader->program(), "View");
+    GLuint ModelID = glGetUniformLocation(shader->program(), "Model");
+    GLuint LightID = glGetUniformLocation(shader->program(), "LightWorld");
+    GLuint LightColorID = glGetUniformLocation(shader->program(), "LightColor");
 
     bool someBoolean;
     float speed;
 
-    {
-        std::shared_ptr<Shader> shader = std::make_unique<Shader>(
-                "C:/Users/Arthur/Documents/Code/Repos/cpp/Motueur/assets/shaders/standard");
-
-        std::unique_ptr<Material> material = std::make_unique<Material>(shader);
-
-
-    }
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     bool should_close = false;
@@ -566,10 +562,17 @@ void run(GLFW::WindowInstance* win_handle) {
             (void*)0            // array buffer offset
         );
 
+        /*material->set_data("View"      , &View      );
+        material->set_data("LightWorld", &Light     );*/
+        //material->set_data("LightColor", &LightColor);
+
+        //material->set_data<glm::mat4>("View", &View);
+        material->use();
+
         glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
         glUniform3fv(LightID, 1, (float*)&Light);
         glUniform4fv(LightColorID, 1, (float*) & LightColor);
-        
+
 
         for (size_t i = 0; i < 10; i++)
         {
@@ -578,8 +581,12 @@ void run(GLFW::WindowInstance* win_handle) {
                 glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 2, 0, j * 2));
 
                 glm::mat4 mvp = Projection * View * Model;
+
+                /*material->set_data("Model", glm::value_ptr(Model));
+                material->set_data("MVP", glm::value_ptr(mvp));*/
                 glUniformMatrix4fv(ModelID, 1, GL_FALSE, glm::value_ptr(Model));
                 glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+
                 glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
             }
         }

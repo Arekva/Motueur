@@ -26,6 +26,8 @@ public:
     ~Shader();
 
     std::unordered_map<std::string, ShaderUniformData>* get_bindings(GLint* count);
+    void use();
+    GLuint program();
 };
 
 }

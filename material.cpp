@@ -29,7 +29,9 @@ Material::~Material() {
     free(_data_memory);
 }
 
-void Material::Use() {
+void Material::use() {
+    _shader->use();
+
     _textureIndex = 0;
 
     for (const auto& uniform: _data) {
