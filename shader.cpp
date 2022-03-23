@@ -153,4 +153,12 @@ std::unordered_map<std::string, ShaderUniformData>* Shader::get_bindings(GLint* 
     return &_uniforms;
 }
 
+void Shader::use() {
+    glUseProgram(_program);
+}
+
+GLuint Shader::program() {
+    return this->_program;
+}
+
 }

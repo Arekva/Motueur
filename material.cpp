@@ -2,7 +2,7 @@
 
 namespace Motueur {
 
-
+int Material::_currentId = 0;
 
 Material::Material(std::shared_ptr<Shader> shader) {
     GLint uniform_count;
@@ -23,13 +23,20 @@ Material::Material(std::shared_ptr<Shader> shader) {
         ++i;
     }
     _shader = std::move(shader);
+
+    _id = (rand() << 16) | rand();
 }
 
 Material::~Material() {
     free(_data_memory);
 }
 
-void Material::Use() {
+void Material::use() {
+    if (_currentId == _id) return;
+    _currentId = _id;
+
+    _shader->use();
+
     _textureIndex = 0;
 
     for (const auto& uniform: _data) {
