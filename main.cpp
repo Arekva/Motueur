@@ -299,8 +299,8 @@ std:vector<unsigned short> indices;
     glGenBuffers(1, &indicesbuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size()* sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
-
-    GLuint programID = LoadShaders("assets/shaders/thomas/shader.vert", "assets/shaders/thomas/shader.frag");
+    
+    //GLuint programID = LoadShaders("assets/shaders/thomas/shader.vert", "assets/shaders/thomas/shader.frag");
 
 
     std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/thomas");
