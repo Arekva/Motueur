@@ -16,6 +16,6 @@ void main(){
 
     float sqdist = pow(distance(light,pos), 2);
 
-    color = texture( myTextureSampler, UV ).rgb*(max(cosTheta,0.1))*LightColor.xyz*pow(LightColor.w,0.5)/sqdist;
+    color = texture( myTextureSampler, UV ).rgb*(max(cosTheta*pow(LightColor.w,0.5)/sqdist,0.1))*LightColor.xyz;
     
 }
