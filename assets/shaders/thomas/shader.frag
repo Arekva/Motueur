@@ -7,6 +7,7 @@ in vec3 pos;
 
 uniform sampler2D myTextureSampler;
 uniform vec4 LightColor;
+uniform mat4 lightSpaceMatrix;
 
 
 void main(){
@@ -16,6 +17,6 @@ void main(){
 
     float sqdist = pow(distance(light,pos), 2);
 
-    color = texture( myTextureSampler, UV ).rgb*(max(cosTheta*pow(LightColor.w,0.5)/sqdist,0.1))*LightColor.xyz;
-    
+    color = texture( myTextureSampler, UV ).rgb*(max(cosTheta*pow(LightColor.a,0.5)/sqdist,0.1))*LightColor.rgb;
+
 }
