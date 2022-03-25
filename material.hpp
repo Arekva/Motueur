@@ -26,8 +26,6 @@ namespace Motueur {
 
 class Material {
 private:
-
-
     const std::unordered_map<GLenum, UniformSetter> setters =
     {
     { GL_INT       , [] (Material* material, GLint location, void* data) -> void {
@@ -53,13 +51,20 @@ private:
     }},
     };
 
+
+    static int                                    _currentId;
+
+private:
     std::shared_ptr<Shader>                       _shader;
     std::unordered_map<std::string, MaterialData> _data  ;
     int                                           _textureIndex;
     void*                                         _data_memory;
     int                                           _id;
 
-    static int                                    _currentId;
+
+public:
+    bool doWriteDepth = true;
+    bool doDepthTest  = true;
 
 public :
     Material(std::shared_ptr<Shader> shader);
@@ -68,7 +73,7 @@ public :
     void use();
 
     template<class T>
-    void set_data(const char* name, const T* data){
+    void set_data(const char* name, const T* data) {
         MaterialData mat_data = _data.at(name);
 
         memcpy(mat_data.Data, data, sizeof(T));

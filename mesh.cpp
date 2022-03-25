@@ -24,13 +24,13 @@ void Mesh::create_vaos() {
     glEnableVertexAttribArray(standard_vao_handle);
 
     /* position */ glVertexAttribPointer(0, sizeof(glm::vec3), GL_FLOAT, false, sizeof(Vertex),
-                                         0);
+                                         (void*)offsetof(Vertex, position));
     /* uv       */ glVertexAttribPointer(1, sizeof(glm::vec2), GL_FLOAT, false, sizeof(Vertex),
-                                         (void*)sizeof(glm::vec3));
+                                         (void*)offsetof(Vertex, uv      ));
     /* normal   */ glVertexAttribPointer(2, sizeof(glm::vec3), GL_FLOAT, false, sizeof(Vertex),
-                                         (void*)(sizeof(glm::vec3) + sizeof(glm::vec2)));
+                                         (void*)offsetof(Vertex, normal  ));
     /* tangents */ glVertexAttribPointer(3, sizeof(glm::vec4), GL_FLOAT, false, sizeof(Vertex),
-                                         (void*)(sizeof(glm::vec3) + sizeof(glm::vec2) + sizeof(glm::vec3)));
+                                         (void*)offsetof(Vertex, tangent ));
 
     glDisableVertexAttribArray(standard_vao_handle);
 }
@@ -50,9 +50,16 @@ void Mesh::create_from_data(const Vertex* vertices, size_t vertex_count, const u
     glBindBuffer(GL_ARRAY_BUFFER, get_vertex_buffer());
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_count, vertices, GL_STATIC_DRAW);
 
-    // remplissage des indices
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, get_index_buffer());
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * index_count, indices, GL_STATIC_DRAW);
+    if (index_count != 0)
+    {
+        // remplissage des indices
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, get_index_buffer());
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * index_count, indices, GL_STATIC_DRAW);
+    }
+
+    _vertexCount = vertex_count;
+    _indexCount  = index_count ;
+
 }
 
 Mesh::Mesh(const Vertex* vertices, size_t vertex_count, const unsigned int* indices, size_t index_count) {
@@ -69,10 +76,21 @@ Mesh::Mesh(const char *path) {
 }
 
 
-inline Mesh::~Mesh() {
+Mesh::~Mesh() {
     glDeleteBuffers(2, _bufferObjects);
 }
 
-void Mesh::Draw(GLuint transform_buffer, size_t transform_count) {
+void Mesh::draw() {
+    if (!_indexCount){
+        glDrawArrays(GL_TRIANGLES, 0, _vertexCount);
+    } else {
+        glBindBuffer(GL_ARRAY_BUFFER, get_vertex_buffer());
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, get_index_buffer());
+        glDrawElements(GL_TRIANGLES, _indexCount, _indexType, 0);
+    }
+}
+
+void Mesh::draw_instancied(GLuint transform_buffer, size_t transform_count) {
     // bind to "transforms"
+    // todo
 }
