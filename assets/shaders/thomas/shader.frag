@@ -7,7 +7,6 @@ in vec3 pos;
 
 uniform sampler2D myTextureSampler;
 uniform vec4 LightColor;
-uniform mat4 lightSpaceMatrix;
 
 
 void main(){
