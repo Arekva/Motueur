@@ -59,12 +59,13 @@ std::unique_ptr<Material> material;
 glm::mat4 View;
 glm::mat4 Projection;
 
-glm::vec3 Lights[32];
-glm::vec4 LightsColors[32];
-int LightNbr = 1;
-
 glm::vec3 Light = { 5,2,5 };
 glm::vec4 LightColor = { 1,1,1,150 };
+glm::mat4 lightView = glm::lookAt(
+    glm::vec3(-2.0f, 4.0f, -1.0f),
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f));
+glm::mat4 lightSpaceMatrix;
 
 bool init_glfw() {
     if (!GLFW::Init()){
@@ -157,8 +158,8 @@ void renderscene() {
 
     material->set_data("View", &View);
     material->set_data("LightWorld", &Light); 
-    material->set_data("LightsColors", &LightsColors);
-    material->set_data("LightNbr", &LightNbr);
+    material->set_data("LightColor", &LightColor);
+    material->set_data("lightSpaceMatrix", &lightSpaceMatrix);
     material->use();
 
     for (size_t i = 0; i < 10; i++)
@@ -170,21 +171,11 @@ void renderscene() {
             material->set_data("Model", &Model);
             material->set_data("MVP", &mvp);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
-            glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, (void*)0); 
+            glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, (void*)0); // Starting from vertex 0; 3 vertices total -> 1 triangle
         }
     }
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
-}
-
-void CreateLights(int LightsToBuild)
-{
-    for (int i = 0; i < LightsToBuild;i++)
-    {
-        Lights[i] = glm::vec3{(rand()/RAND_MAX)*5,(rand() / RAND_MAX) * 5,(rand() / RAND_MAX) * 5 };
-        LightsColors[i] = glm::vec4{ 1,1,1,150 };
-    }
-    LightNbr = LightsToBuild;
 }
 
 void run(GLFW::WindowInstance* win_handle) {
@@ -206,12 +197,10 @@ void run(GLFW::WindowInstance* win_handle) {
     glewInit();
 
     glClearColor(1.0F, 1.0F, 0.0F, 1.0F);
-    int lightsToBuild = 5;
-    int SelectedLight = 0;
-    CreateLights(lightsToBuild);
 
     //models 3D
     bool res = m.loadModel("assets\\models\\Echelle.fbx", indices, vertices, uvs, normalsobj);
+
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
@@ -257,7 +246,8 @@ void run(GLFW::WindowInstance* win_handle) {
     c.position = glm::vec3(lightX, lightY, lightZ);
     c.up = glm::vec3(0, 1, 0);
 
-    glm::mat4 Projection = glm::perspective(glm::radians(70.0f), (float)width / (float)height, 0.1f, 10000.0f);
+    glm::mat4 camProjection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
+    glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 10.0f);
 
     View = glm::lookAt(
         c.position,
@@ -265,10 +255,12 @@ void run(GLFW::WindowInstance* win_handle) {
         c.up
     );
 
+    
     glm::mat4 camTransform = glm::inverse(View);
     c.right = camTransform[0];
     c.up = camTransform[1];
-    c.front = camTransform[2];    
+    c.front = camTransform[2];
+    
 
     Texture t("assets/textures/test.png");
 
@@ -355,6 +347,8 @@ void run(GLFW::WindowInstance* win_handle) {
             continue; // on revient au début de la boucle pour qu'elle ce quitte proprement.
         }
 
+
+
         View = glm::lookAt(
             c.position,
             c.position - c.front,
@@ -366,11 +360,18 @@ void run(GLFW::WindowInstance* win_handle) {
         c.up = camTransform[1];
         c.front = camTransform[2];
 
-        glClearColor(0.0f, 0.0f, 0.4f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.4f, 0.0f); 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        Projection = lightProjection;
+        lightSpaceMatrix = lightProjection * lightView;
+        renderscene();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        Projection = camProjection;
         renderscene();
+
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -378,7 +379,6 @@ void run(GLFW::WindowInstance* win_handle) {
         ImGui::Begin("MyWindow");
 
         ImGui::Text("FPS: %f", 1.0f/Time::delta());
-        ImGui::SliderInt("Light Id", &SelectedLight,0,LightNbr );
         ImGui::SliderFloat("lightX", &lightX, -50.0f, 50.0f);
         ImGui::SliderFloat("lightY", &lightY, -50.0f, 50.0f);
         ImGui::SliderFloat("lightZ", &lightZ, -50.0f, 50.0f);
@@ -387,7 +387,10 @@ void run(GLFW::WindowInstance* win_handle) {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        Lights[SelectedLight] = glm::vec3{lightX,lightY,lightZ};
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        Light = glm::vec3{ lightX,lightY,lightZ };
 
         window->SwapBuffers();
     }

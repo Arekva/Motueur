@@ -69,15 +69,12 @@ namespace Motueur {
 
         template<class T>
         void set_data(const char* name, const T* data){
-            if (_data.find(name) != _data.end())
-            {
-                MaterialData mat_data = _data.at(name);
+            MaterialData mat_data = _data.at(name);
 
-                memcpy(mat_data.Data, data, sizeof(T));
+            memcpy(mat_data.Data, data, sizeof(T));
 
-                if (_currentId == _id) { // directly set if current material is being used.
-                    mat_data.Setter(this, mat_data.Uniform.Location, mat_data.Data);
-                }
+            if (_currentId == _id) { // directly set if current material is being used.
+                mat_data.Setter(this, mat_data.Uniform.Location, mat_data.Data);
             }
         }
     };
