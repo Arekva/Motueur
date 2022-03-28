@@ -60,7 +60,7 @@ void Shader::create_uniform_map() {
         GLint  uniform_size    ;
         GLenum type            ;
         glGetActiveUniform(_program, i, 256, &size, &uniform_size, &type, name_buffer);
-
+        GLint loc = glGetUniformLocation(_program, name_buffer);
         GLchar* name_raw = (GLchar*)malloc(sizeof(GLchar) * size);
 
         std::memcpy(name_raw, name_buffer, sizeof(GLchar) * size);
@@ -68,7 +68,7 @@ void Shader::create_uniform_map() {
 
         ShaderUniformData data = {
             .Name     = name,
-            .Location = i,
+            .Location = loc,
             .Size     = size,
             .Type     = type
         };

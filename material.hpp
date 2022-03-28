@@ -12,15 +12,18 @@ namespace Motueur {
 
     class Material;
 
-    typedef void (*UniformSetter)(Material* material, GLint location, void* data);
+    typedef void (*UniformSetter)(Material* material, GLint location, int count, void* data);
 
     struct MaterialData {
         ShaderUniformData Uniform;
         UniformSetter     Setter ;
+        int               Count  ;
         void*             Data   ;
     };
 
 }
+
+#define CHECK_OGL_ERROR do{ if(glGetError() != GL_NONE) __debugbreak(); } while(false)
 
 namespace Motueur {
 
@@ -30,26 +33,33 @@ namespace Motueur {
 
         const std::unordered_map<GLenum, UniformSetter> setters =
         {
-        { GL_INT       , [] (Material* material, GLint location, void* data) -> void {
+        { GL_INT       , [] (Material* material, GLint location, int count, void* data) -> void {
             glUniform1i       (location, *(int*)data  );
+            CHECK_OGL_ERROR;
         }},
-        { GL_FLOAT     , [] (Material* material, GLint location, void* data) -> void {
+        { GL_FLOAT     , [] (Material* material, GLint location, int count, void* data) -> void {
             glUniform1f       (location, *(float*)data);
+            CHECK_OGL_ERROR;
         }},
-        { GL_FLOAT_MAT4, [] (Material* material, GLint location, void* data) -> void {
-            glUniformMatrix4fv(location, 1, false, glm::value_ptr(*(glm::mat4*)data));
+        { GL_FLOAT_MAT4, [] (Material* material, GLint location, int count, void* data) -> void {
+            glUniformMatrix4fv(location, count, false, glm::value_ptr(*(glm::mat4*)data));
+            CHECK_OGL_ERROR;
         }},
-        { GL_FLOAT_VEC3, [] (Material* material, GLint location, void* data) -> void {
-            glUniform3fv      (location, 1, (float*)data);
+        { GL_FLOAT_VEC3, [] (Material* material, GLint location, int count, void* data) -> void {
+            glUniform3fv      (location, count, (float*)data);
+            CHECK_OGL_ERROR;
         }},
-        { GL_SAMPLER_2D, [] (Material* material, GLint location, void* data) -> void {
+        { GL_SAMPLER_2D, [] (Material* material, GLint location, int count, void* data) -> void {
             const int index = material->_textureIndex;
 
             ((Texture*)data)->Use(GL_TEXTURE0 + index);
             glUniform1i(location, index);
+            CHECK_OGL_ERROR;
         }},
-        { GL_FLOAT_VEC4, [] (Material* material, GLint location, void* data) -> void {
-            glUniform4fv      (location, 1, (float*)data);
+        { GL_FLOAT_VEC4, [] (Material* material, GLint location, int count, void* data) -> void {
+            
+            glUniform4fv      (location, count, (float*)data);
+            CHECK_OGL_ERROR;
         }},
         };
 
@@ -68,14 +78,25 @@ namespace Motueur {
         void use();
 
         template<class T>
-        void set_data(const char* name, const T* data){
-            MaterialData mat_data = _data.at(name);
+        void set_data(const char* name, const T* data, int count) {
+            if (_data.find(name) != _data.end()) {
+                MaterialData* mat_data = &_data.at(name);
 
-            memcpy(mat_data.Data, data, sizeof(T));
+                memcpy(mat_data->Data, data, sizeof(T) * count);
+                mat_data->Count = count;
 
-            if (_currentId == _id) { // directly set if current material is being used.
-                mat_data.Setter(this, mat_data.Uniform.Location, mat_data.Data);
+                if (_currentId == _id) { // directly set if current material is being used.
+                    mat_data->Setter(this, mat_data->Uniform.Location, count, mat_data->Data);
+                }
             }
+            else {
+                std::cout << "Material uniform \"" << name << "\" do not exist or is not active in the shader program.";
+            }
+        }
+
+        template<class T>
+        void set_data(const char* name, const T* data) {
+            set_data<T>(name, data, 1);
         }
     };
 
