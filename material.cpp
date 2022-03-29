@@ -8,7 +8,7 @@ Material::Material(std::shared_ptr<Shader> shader) {
     GLint uniform_count;
     std::unordered_map<std::string, ShaderUniformData>* uniforms = shader->get_bindings(&uniform_count);
 
-    _data_memory = malloc(256 * uniform_count);
+    _data_memory = malloc(1024 * uniform_count);
 
     _data.reserve(uniform_count);
 
@@ -17,7 +17,7 @@ Material::Material(std::shared_ptr<Shader> shader) {
         MaterialData data = {
             .Uniform = uniform.second,
             .Setter  = setters.at(uniform.second.Type),
-            .Data    = (char*)_data_memory + 256 * i
+            .Data    = (char*)_data_memory + 1024 * i
         };
         _data.insert({uniform.first, data});
         ++i;
@@ -51,7 +51,7 @@ void Material::use() {
     for (const auto& uniform: _data) {
         MaterialData data = uniform.second;
         if (data.Data != nullptr) { // update uniforms
-            data.Setter(this, data.Uniform.Location, data.Data);
+            data.Setter(this, data.Uniform.Location, data.Count, data.Data);
 
             if (data.Uniform.Type == GL_SAMPLER_2D) {
                 ++_textureIndex;

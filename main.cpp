@@ -31,7 +31,15 @@
 using namespace GLFW;
 using namespace Motueur;
 
+extern "C" {
+    _declspec(dllexport) uint32_t NvOptimusEnablement = 0x00000001;
+}
 
+void GLAPIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id,
+    GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+    std::cout << "[OpenGL] " << message << std::endl;
+}
 
 
 void init_imgui(GLFWwindow* window) {
@@ -47,7 +55,12 @@ float mousespeed = 0.1f;
 const float ratio = (float)width / height;
 double posy, posx;
 float lightX = 0.0, lightY = 2.0, lightZ = 5.0;
+float lightPow = 200.0;
 bool mouseActive;
+
+glm::vec3 LightsWorld[32];
+glm::vec4 LightsColor[32];
+int LightNbr;
 
 bool init_glfw() {
     if (!GLFW::Init()){
@@ -64,6 +77,8 @@ bool init_glfw() {
     GLFW::WindowHint::OpenGLForwardCompat(true);
     GLFW::WindowHint::OpenGLProfile(GLFW::OpenGLProfile::Core);
 
+    GLFW::WindowHint::Generic(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+
     return true;
 }
 
@@ -79,7 +94,7 @@ bool startup(GLFW::WindowInstance** win_handle) {
 
     // glew
     glewInit();
-
+    
     init_imgui(reinterpret_cast<GLFWwindow*>(window));
 
     // engine
@@ -106,6 +121,17 @@ void shutdown(GLFW::WindowInstance* win_handle) {
 }
 
 
+void CreateLights(int LightsTobuild)
+{
+    if (LightsTobuild > 32) LightsTobuild = 32;
+    for (int i = 0; i < LightsTobuild; i++)
+    {
+        LightsWorld[i] = glm::vec3{ 100.0 * (rand() / (float)RAND_MAX) ,100.0 * (rand() / (float)RAND_MAX) ,100.0 * (rand() / (float)RAND_MAX) };
+        LightsColor[i] = glm::vec4{ rand() / (float)RAND_MAX,rand() / (float)RAND_MAX,rand() / (float)RAND_MAX,lightPow };
+    }
+    LightNbr = LightsTobuild;
+}
+
 void run(GLFW::WindowInstance* win_handle) {
     LoadModel m;
     camera c;
@@ -113,6 +139,11 @@ void run(GLFW::WindowInstance* win_handle) {
     GLFWwindow* glfw_win = reinterpret_cast<GLFWwindow*>(window);
 
     window->MakeContextCurrent();
+
+    glDebugMessageCallback(&glDebugOutput, nullptr);
+    glDebugMessageControl(
+        GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE, 0, NULL, GL_TRUE);
+
     window->GetCursorPos(& posx, & posy);
 
     glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -124,7 +155,7 @@ void run(GLFW::WindowInstance* win_handle) {
     // glew
     glewInit();
 
-    glClearColor(1.0F, 1.0F, 0.0F, 1.0F);
+    CreateLights(5);
 
     //models 3D
 std:vector<unsigned short> indices;
@@ -132,148 +163,6 @@ std:vector<unsigned short> indices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normalsobj; // Won't be used at the moment.
     bool res = m.loadModel("assets/models/Suzanne.obj", indices, vertices, uvs, normalsobj);
-
-    static const GLfloat g_vertex_buffer_data[] = {
-        // up
-        -1.0,  1.0, -1.0,
-        -1.0,  1.0,  1.0,
-         1.0,  1.0, -1.0,
-         1.0,  1.0, -1.0,
-        -1.0,  1.0,  1.0,
-         1.0,  1.0,  1.0,
-
-        //down
-        -1.0, -1.0,  1.0,
-        -1.0, -1.0, -1.0,
-         1.0, -1.0,  1.0,
-         1.0, -1.0,  1.0,
-        -1.0, -1.0, -1.0,
-         1.0, -1.0, -1.0,
-
-        //west
-        -1.0, -1.0, -1.0,
-        -1.0, -1.0,  1.0,
-        -1.0,  1.0, -1.0,
-        -1.0,  1.0, -1.0,
-        -1.0, -1.0,  1.0,
-        -1.0,  1.0,  1.0,
-
-        //east
-         1.0,  1.0,  1.0,
-         1.0, -1.0,  1.0,
-         1.0,  1.0, -1.0,
-         1.0,  1.0, -1.0,
-         1.0, -1.0,  1.0,
-         1.0, -1.0, -1.0,
-
-        //north
-        -1.0, -1.0,  1.0,
-         1.0, -1.0,  1.0,
-        -1.0,  1.0,  1.0,
-        -1.0,  1.0,  1.0,
-         1.0, -1.0,  1.0,
-         1.0,  1.0,  1.0,
-
-        //south
-         1.0,  1.0, -1.0,
-         1.0, -1.0, -1.0,
-        -1.0,  1.0, -1.0,
-        -1.0,  1.0, -1.0,
-         1.0, -1.0, -1.0,
-        -1.0, -1.0, -1.0,
-
-    };
-
-    static const GLfloat normals[] =
-    {
-        0,1,0,
-        0,1,0,
-        0,1,0,
-        0,1,0,
-        0,1,0,
-        0,1,0,
-
-        0,-1,0,
-        0,-1,0,
-        0,-1,0,
-        0,-1,0,
-        0,-1,0,
-        0,-1,0,
-
-        -1,0,0,
-        -1,0,0,
-        -1,0,0,
-        -1,0,0,
-        -1,0,0,
-        -1,0,0,
-
-        1,0,0,
-        1,0,0,
-        1,0,0,
-        1,0,0,
-        1,0,0,
-        1,0,0,
-
-        0,0,1,
-        0,0,1,
-        0,0,1,
-        0,0,1,
-        0,0,1,
-        0,0,1,
-
-        0,0,-1,
-        0,0,-1,
-        0,0,-1,
-        0,0,-1,
-        0,0,-1,
-        0,0,-1
-    };
-
-    static const GLfloat g_uv_buffer_data[] = 
-    {
-        0.0, 0.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 0.0,
-        0.0, 1.0,
-        1.0, 1.0,
-
-        0.0, 0.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 0.0,
-        0.0, 1.0,
-        1.0, 1.0,
-
-        0.0, 0.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 0.0,
-        0.0, 1.0,
-        1.0, 1.0,
-
-        0.0, 0.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 0.0,
-        0.0, 1.0,
-        1.0, 1.0,
-
-        0.0, 0.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 0.0,
-        0.0, 1.0,
-        1.0, 1.0,
-
-        0.0, 0.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 0.0,
-        0.0, 1.0,
-        1.0, 1.0,
-
-    };
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -292,22 +181,18 @@ std:vector<unsigned short> indices;
     GLuint normalbuffer;
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-
     glBufferData(GL_ARRAY_BUFFER, normalsobj.size()*sizeof(glm::vec3), &normalsobj[0], GL_STATIC_DRAW);
 
     GLuint indicesbuffer;
     glGenBuffers(1, &indicesbuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size()* sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
-    
-    //GLuint programID = LoadShaders("assets/shaders/thomas/shader.vert", "assets/shaders/thomas/shader.frag");
-
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
 
     std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/thomas");
 
     glViewport(0, 0, width, height);
 
-    c.position = glm::vec3(lightX, lightY, lightZ);
+    c.position = glm::vec3(20, 20, 10);
     c.up = glm::vec3(0, 1, 0);
 
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
@@ -317,11 +202,6 @@ std:vector<unsigned short> indices;
         glm::vec3(0, 0, 0), // and looks at the origin
         c.up
     );
-
-
-    glm::vec3 Light = { 0,2,5 };
-    glm::vec4 LightColor = { 1,1,1,150};
-
 
     
     glm::mat4 camTransform = glm::inverse(View);
@@ -426,7 +306,7 @@ std:vector<unsigned short> indices;
         c.up = camTransform[1];
         c.front = camTransform[2];
 
-        glClearColor(0.0f, 0.0f, 0.4f, 0.0f); 
+        glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glEnableVertexAttribArray(0);
@@ -462,35 +342,18 @@ std:vector<unsigned short> indices;
             (void*)0            // array buffer offset
         );
 
-
-
         material->set_data("View", &View);
-        material->set_data("LightWorld", &Light);
-        material->set_data("LightColor", &LightColor);
-
+        material->set_data("LightsWorld[0]", LightsWorld, LightNbr);
+        material->set_data("LightsColor[0]", LightsColor, LightNbr);
+        material->set_data("LightNbr", &LightNbr);
         material->use();
 
-        //for (size_t i = 0; i < 10; i++)
-        //{
-        //    for (size_t j = 0; j < 10; j++)
-        //    {
-        //        glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 2, 0, j * 2));
-
-        //        glm::mat4 mvp = Projection * View * Model;
-        //        glUniformMatrix4fv(ModelID, 1, GL_FALSE, glm::value_ptr(Model));
-        //        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-        //        glDrawArrays(GL_TRIANGLES, 0, indices.size() * 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-        //    }
-        //}
-
-        for (size_t i = 0; i < 10; i++)
+        for (size_t i = 0; i < 20; i++)
         {
-            for (size_t j = 0; j < 10; j++)
+            for (size_t j = 0; j < 20; j++)
             {
-                glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 2, 0, j * 2));
-
+                glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 5, 0, j * 5));
                 glm::mat4 mvp = Projection * View * Model;
-
                 material->set_data("Model", &Model);
                 material->set_data("MVP", &mvp);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
@@ -503,20 +366,16 @@ std:vector<unsigned short> indices;
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGui::Begin("MyWindow");
-
+        
         ImGui::Text("FPS: %f", 1.0f/Time::delta());
-        ImGui::SliderFloat("lightX", &lightX, -50.0f, 50.0f);
-        ImGui::SliderFloat("lightY", &lightY, -50.0f, 50.0f);
-        ImGui::SliderFloat("lightZ", &lightZ, -50.0f, 50.0f);
+        if (ImGui::Button("Re Gen Lights")) CreateLights(32);
+        ImGui::SliderFloat("light pow", &lightPow, 0.0, 111000.0f);
         ImGui::End();
-
+        
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        Light = glm::vec3{ lightX,lightY,lightZ };
+        
+        LightsWorld[0] = glm::vec3{lightX,lightY,lightZ};
 
         window->SwapBuffers();
     }
