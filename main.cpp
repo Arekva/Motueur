@@ -131,7 +131,7 @@ std:vector<unsigned short> indices;
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normalsobj; // Won't be used at the moment.
-    bool res = m.loadModel("D:\\Users\\hmarseu\\Motueur\\assets\\models\\Echelle.fbx", indices, vertices, uvs, normalsobj);
+    bool res = m.loadModel("assets/models/Suzanne.obj", indices, vertices, uvs, normalsobj);
 
     static const GLfloat g_vertex_buffer_data[] = {
         // up
