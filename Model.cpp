@@ -21,12 +21,12 @@ using namespace std;
 //        meshes[i].Draw(shader);
 //}
 
-bool LoadModel::loadModel(const char* path, vector<unsigned short>& indices, vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals)
+bool LoadModel::loadModel(const char* path, vector<unsigned short>& indices, vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals, vector<glm::vec3>& tangent, vector<glm::vec3>& bitangent)
 {
     
     Assimp::Importer importer;
 
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     if (!scene) {
         fprintf(stderr, importer.GetErrorString());
         getchar();
@@ -55,6 +55,19 @@ bool LoadModel::loadModel(const char* path, vector<unsigned short>& indices, vec
         normals.push_back(glm::vec3(n.x, n.y, n.z));
     }
 
+    // Fill vertices tangents
+    tangent.reserve(mesh->mNumVertices);
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+        aiVector3D n = mesh->mTangents[i];
+        tangent.push_back(glm::vec3(n.x, n.y, n.z));
+    }
+
+    // Fill vertices tangents
+    tangent.reserve(mesh->mNumVertices);
+    for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+        aiVector3D n = mesh->mTangents[i];
+        bitangent.push_back(glm::vec3(n.x, n.y, n.z));
+    }
 
     // Fill face indices
     indices.reserve(3 * mesh->mNumFaces);

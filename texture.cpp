@@ -29,7 +29,8 @@ Texture::~Texture()
 	glDeleteTextures(1,&ID);
 }
 
-void Texture::Use(GLint unit) const {
+void Texture::Use(GLint unit) const 
+{
     glActiveTexture(unit);
     glBindTexture(GL_TEXTURE_2D, this->ID);
 }

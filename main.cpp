@@ -54,13 +54,14 @@ float movespeed = 10.0f;
 float mousespeed = 0.1f;
 const float ratio = (float)width / height;
 double posy, posx;
-float lightX = 0.0, lightY = 2.0, lightZ = 5.0;
-float lightPow = 200.0;
+float lightPow = 10000.0;
 bool mouseActive;
 
 glm::vec3 LightsWorld[32];
 glm::vec4 LightsColor[32];
 int LightNbr;
+
+float lx = 0, ly = 0, lz = 0;
 
 bool init_glfw() {
     if (!GLFW::Init()){
@@ -107,7 +108,6 @@ bool startup(GLFW::WindowInstance** win_handle) {
     return true;
 }
 
-
 void shutdown(GLFW::WindowInstance* win_handle) {
     delete win_handle;
 
@@ -120,13 +120,12 @@ void shutdown(GLFW::WindowInstance* win_handle) {
     GLFW::Terminate();
 }
 
-
 void CreateLights(int LightsTobuild)
 {
     if (LightsTobuild > 32) LightsTobuild = 32;
     for (int i = 0; i < LightsTobuild; i++)
     {
-        LightsWorld[i] = glm::vec3{ 100.0 * (rand() / (float)RAND_MAX) ,100.0 * (rand() / (float)RAND_MAX) ,100.0 * (rand() / (float)RAND_MAX) };
+        LightsWorld[i] = glm::vec3{ 100.0 * (rand() / (float)RAND_MAX) ,100 * (rand() / (float)RAND_MAX) ,100.0 * (rand() / (float)RAND_MAX) };
         LightsColor[i] = glm::vec4{ rand() / (float)RAND_MAX,rand() / (float)RAND_MAX,rand() / (float)RAND_MAX,lightPow };
     }
     LightNbr = LightsTobuild;
@@ -155,14 +154,16 @@ void run(GLFW::WindowInstance* win_handle) {
     // glew
     glewInit();
 
-    CreateLights(5);
+    CreateLights(32);
 
     //models 3D
-std:vector<unsigned short> indices;
+    std:vector<unsigned short> indices;
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normalsobj; // Won't be used at the moment.
-    bool res = m.loadModel("assets\\models\\Echelle.fbx", indices, vertices, uvs, normalsobj);
+    std::vector<glm::vec3> normalsobj;
+    std::vector<glm::vec3> tangent;
+    std::vector<glm::vec3> bitangent;
+    bool res = m.loadModel("assets\\models\\Echelle.fbx", indices, vertices, uvs, normalsobj, tangent, bitangent);
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -188,6 +189,16 @@ std:vector<unsigned short> indices;
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
 
+    GLuint tangentbuffer;
+    glGenBuffers(1, &tangentbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+    glBufferData(GL_ARRAY_BUFFER, tangent.size() * sizeof(glm::vec3), &tangent[0], GL_STATIC_DRAW);
+
+    GLuint bitangentbuffer;
+    glGenBuffers(1, &bitangentbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
+    glBufferData(GL_ARRAY_BUFFER, bitangent.size() * sizeof(glm::vec3), &bitangent[0], GL_STATIC_DRAW);
+
     std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/thomas");
 
     glViewport(0, 0, width, height);
@@ -202,18 +213,19 @@ std:vector<unsigned short> indices;
         glm::vec3(0, 0, 0), // and looks at the origin
         c.up
     );
-
     
     glm::mat4 camTransform = glm::inverse(View);
     c.right = camTransform[0];
     c.up = camTransform[1];
-    c.front = camTransform[2];
-    
+    c.front = camTransform[2];    
 
-    Texture t("assets/textures/test.png");
+    Texture tex("assets/textures/cratediffuse.png");
 
     std::unique_ptr<Material> material = std::make_unique<Material>(shader);
-    material->set_data("myTextureSampler", &t);
+    material->set_data("Texture", &tex);
+
+    Texture nmap("assets/textures/cratenormal.png");
+    material->set_data("NMap", &nmap);
 
     bool someBoolean;
     float speed;
@@ -312,34 +324,56 @@ std:vector<unsigned short> indices;
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
-            0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-            3,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            0,                  // stride
-            (void*)0            // array buffer offset
+            0,                  
+            3,                  
+            GL_FLOAT,           
+            GL_FALSE,           
+            0,                  
+            (void*)0            
         );
 
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
         glVertexAttribPointer(
-            1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-            2,                                // size
-            GL_FLOAT,                         // type
-            GL_FALSE,                         // normalized?
-            0,                                // stride
-            (void*)0                          // array buffer offset
+            1,                              
+            2,                              
+            GL_FLOAT,                       
+            GL_FALSE,                       
+            0,                              
+            (void*)0                        
         );
 
         glEnableVertexAttribArray(2);
         glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
         glVertexAttribPointer(
-            2,                  // attribute . No particular reason for 0, but must match the layout in the shader.
-            3,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            0,                  // stride
-            (void*)0            // array buffer offset
+            2,                
+            3,                
+            GL_FLOAT,         
+            GL_FALSE,         
+            0,                
+            (void*)0          
+        );
+
+        glEnableVertexAttribArray(3);
+        glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+        glVertexAttribPointer(
+            3,                               
+            3,                               
+            GL_FLOAT,                        
+            GL_FALSE,                        
+            0,                               
+            (void*)0                         
+        );
+
+        glEnableVertexAttribArray(4);
+        glBindBuffer(GL_ARRAY_BUFFER, bitangentbuffer);
+        glVertexAttribPointer(
+            4,                               
+            3,                               
+            GL_FLOAT,                        
+            GL_FALSE,                        
+            0,                               
+            (void*)0                         
         );
 
         material->set_data("View", &View);
@@ -348,20 +382,27 @@ std:vector<unsigned short> indices;
         material->set_data("LightNbr", &LightNbr);
         material->use();
 
-        for (size_t i = 0; i < 20; i++)
+        for (size_t i = 0; i < 10; i++)
         {
             for (size_t j = 0; j < 20; j++)
             {
-                glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 5, 0, j * 5));
-                glm::mat4 mvp = Projection * View * Model;
-                material->set_data("Model", &Model);
-                material->set_data("MVP", &mvp);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
-                glDrawElements(GL_TRIANGLES, indices.size(),GL_UNSIGNED_SHORT, (void*)0); // Starting from vertex 0; 3 vertices total -> 1 triangle
+               // for (size_t k = 0; k < 10; k++)
+                {
+                    glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 3,0, j * 3));
+                    glm::mat4 mvp = Projection * View * Model;
+                    material->set_data("Model", &Model);
+                    material->set_data("MVP", &mvp);
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
+                    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, (void*)0);
+                }
             }
         }
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
+        glDisableVertexAttribArray(3);
+        glDisableVertexAttribArray(4);
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -369,18 +410,26 @@ std:vector<unsigned short> indices;
         
         ImGui::Text("FPS: %f", 1.0f/Time::delta());
         if (ImGui::Button("Re Gen Lights")) CreateLights(32);
-        ImGui::SliderFloat("light pow", &lightPow, 0.0, 111000.0f);
+        if (ImGui::SliderFloat("light pow", &lightPow, 0.0, 111000.0f))
+        {
+            for(int i = 0;i< LightNbr ;i++)
+            {
+                LightsColor[i][3] = lightPow;
+            }
+        }
+        ImGui::SliderFloat("lx", &lx, 0.0, 100.0f);
+        ImGui::SliderFloat("ly", &lz, 0.0, 100.0f);
+        ImGui::SliderFloat("lz", &ly, 0.0, 100.0f);
+
         ImGui::End();
         
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        
-        LightsWorld[0] = glm::vec3{lightX,lightY,lightZ};
+        LightsWorld[0] = glm::vec3(lx, lz, ly);
 
         window->SwapBuffers();
     }
 }
-
 
 int main() {
     GLFW::WindowInstance* win_handle;

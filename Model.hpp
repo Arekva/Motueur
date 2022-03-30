@@ -19,7 +19,9 @@ class LoadModel
           vector<unsigned short>& indices,
           vector<glm::vec3>& vertices,
           vector<glm::vec2>& uvs,
-          vector<glm::vec3>& normals
+          vector<glm::vec3>& normals,
+          vector<glm::vec3>& tangent,
+          vector<glm::vec3>& bitangent
 
       );
 
