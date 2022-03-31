@@ -26,8 +26,6 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
-#include "Model.hpp"
-
 using namespace GLFW;
 using namespace Motueur;
 
@@ -57,6 +55,7 @@ double posy, posx;
 float lightX = 0.0, lightY = 2.0, lightZ = 5.0;
 float lightPow = 200.0;
 bool mouseActive;
+glm::mat4 Projection;
 
 glm::vec3 LightsWorld[32];
 glm::vec4 LightsColor[32];
@@ -132,8 +131,15 @@ void CreateLights(int LightsTobuild)
     LightNbr = LightsTobuild;
 }
 
+void resize(Window* win, int w, int h)
+{
+    width  = w;
+    height = h;
+    glViewport(0.0F, 0.0F, width, height);
+    Projection = glm::perspective(glm::radians(70.0f), (float)width / (float)height, 0.1f, 10000.0f);
+}
+
 void run(GLFW::WindowInstance* win_handle) {
-    LoadModel m;
     camera c;
     Window* window = win_handle->GetAPI();
     GLFWwindow* glfw_win = reinterpret_cast<GLFWwindow*>(window);
@@ -157,45 +163,14 @@ void run(GLFW::WindowInstance* win_handle) {
 
     CreateLights(5);
 
-    //models 3D
-std:vector<unsigned short> indices;
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normalsobj; // Won't be used at the moment.
-    bool res = m.loadModel("assets/models/Suzanne.obj", indices, vertices, uvs, normalsobj);
-
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
-
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
-    GLuint uvbuffer;
-    glGenBuffers(1, &uvbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-
-    GLuint normalbuffer;
-    glGenBuffers(1, &normalbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, normalsobj.size()*sizeof(glm::vec3), &normalsobj[0], GL_STATIC_DRAW);
-
-    GLuint indicesbuffer;
-    glGenBuffers(1, &indicesbuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>("assets/models/Suzanne.obj");
 
     std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/thomas");
-
-    glViewport(0, 0, width, height);
 
     c.position = glm::vec3(20, 20, 10);
     c.up = glm::vec3(0, 1, 0);
 
-    glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 10000.0f);
+
 
     glm::mat4 View = glm::lookAt(
         c.position,
@@ -218,14 +193,10 @@ std:vector<unsigned short> indices;
     bool someBoolean;
     float speed;
 
-    glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    window->SetSizeCallback([] (Window* win, int w, int h) {
-        width  = w;
-        height = h;
-        glViewport(0.0F, 0.0F, width, height);
-    });
+    resize(window, width, height);
+    window->SetSizeCallback(resize);
 
     bool should_close = false;
     while (!should_close) {
@@ -309,44 +280,13 @@ std:vector<unsigned short> indices;
         glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-            0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-            3,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            0,                  // stride
-            (void*)0            // array buffer offset
-        );
-
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-        glVertexAttribPointer(
-            1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-            2,                                // size
-            GL_FLOAT,                         // type
-            GL_FALSE,                         // normalized?
-            0,                                // stride
-            (void*)0                          // array buffer offset
-        );
-
-        glEnableVertexAttribArray(2);
-        glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-        glVertexAttribPointer(
-            2,                  // attribute . No particular reason for 0, but must match the layout in the shader.
-            3,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            0,                  // stride
-            (void*)0            // array buffer offset
-        );
 
         material->set_data("View", &View);
         material->set_data("LightsWorld[0]", LightsWorld, LightNbr);
         material->set_data("LightsColor[0]", LightsColor, LightNbr);
         material->set_data("LightNbr", &LightNbr);
         material->use();
+        mesh->use();
 
         for (size_t i = 0; i < 20; i++)
         {
@@ -356,8 +296,9 @@ std:vector<unsigned short> indices;
                 glm::mat4 mvp = Projection * View * Model;
                 material->set_data("Model", &Model);
                 material->set_data("MVP", &mvp);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
-                glDrawElements(GL_TRIANGLES, indices.size(),GL_UNSIGNED_SHORT, (void*)0); // Starting from vertex 0; 3 vertices total -> 1 triangle
+                mesh->draw();
+                //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
+                //glDrawElements(GL_TRIANGLES, indices.size(),GL_UNSIGNED_SHORT, (void*)0); // Starting from vertex 0; 3 vertices total -> 1 triangle
             }
         }
         glDisableVertexAttribArray(0);

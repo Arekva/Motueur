@@ -29,55 +29,37 @@ namespace Motueur {
 
 class Material {
 private:
-    const std::unordered_map<GLenum, UniformSetter> setters =
+    const std::unordered_map<GLenum, UniformSetter>  setters =
     {
-    { GL_INT       , [] (Material* material, GLint location, void* data) -> void {
+    { GL_INT       , [] (Material* material, GLint location, int count, void* data) -> void {
         glUniform1i       (location, *(int*)data  );
+        CHECK_OGL_ERROR;
     }},
-    { GL_FLOAT     , [] (Material* material, GLint location, void* data) -> void {
+    { GL_FLOAT     , [] (Material* material, GLint location, int count, void* data) -> void {
         glUniform1f       (location, *(float*)data);
+        CHECK_OGL_ERROR;
     }},
-    { GL_FLOAT_MAT4, [] (Material* material, GLint location, void* data) -> void {
-        glUniformMatrix4fv(location, 1, false, glm::value_ptr(*(glm::mat4*)data));
+    { GL_FLOAT_MAT4, [] (Material* material, GLint location, int count, void* data) -> void {
+        glUniformMatrix4fv(location, count, false, glm::value_ptr(*(glm::mat4*)data));
+        CHECK_OGL_ERROR;
     }},
-    { GL_FLOAT_VEC3, [] (Material* material, GLint location, void* data) -> void {
-        glUniform3fv      (location, 1, (float*)data);
+    { GL_FLOAT_VEC3, [] (Material* material, GLint location, int count, void* data) -> void {
+        glUniform3fv      (location, count, (float*)data);
+        CHECK_OGL_ERROR;
     }},
-    { GL_SAMPLER_2D, [] (Material* material, GLint location, void* data) -> void {
+    { GL_SAMPLER_2D, [] (Material* material, GLint location, int count, void* data) -> void {
         const int index = material->_textureIndex;
 
+        ((Texture*)data)->Use(GL_TEXTURE0 + index);
+        glUniform1i(location, index);
+        CHECK_OGL_ERROR;
+    }},
+    { GL_FLOAT_VEC4, [] (Material* material, GLint location, int count, void* data) -> void {
 
-        const std::unordered_map<GLenum, UniformSetter> setters =
-        {
-        { GL_INT       , [] (Material* material, GLint location, int count, void* data) -> void {
-            glUniform1i       (location, *(int*)data  );
-            CHECK_OGL_ERROR;
-        }},
-        { GL_FLOAT     , [] (Material* material, GLint location, int count, void* data) -> void {
-            glUniform1f       (location, *(float*)data);
-            CHECK_OGL_ERROR;
-        }},
-        { GL_FLOAT_MAT4, [] (Material* material, GLint location, int count, void* data) -> void {
-            glUniformMatrix4fv(location, count, false, glm::value_ptr(*(glm::mat4*)data));
-            CHECK_OGL_ERROR;
-        }},
-        { GL_FLOAT_VEC3, [] (Material* material, GLint location, int count, void* data) -> void {
-            glUniform3fv      (location, count, (float*)data);
-            CHECK_OGL_ERROR;
-        }},
-        { GL_SAMPLER_2D, [] (Material* material, GLint location, int count, void* data) -> void {
-            const int index = material->_textureIndex;
-
-            ((Texture*)data)->Use(GL_TEXTURE0 + index);
-            glUniform1i(location, index);
-            CHECK_OGL_ERROR;
-        }},
-        { GL_FLOAT_VEC4, [] (Material* material, GLint location, int count, void* data) -> void {
-            
-            glUniform4fv      (location, count, (float*)data);
-            CHECK_OGL_ERROR;
-        }},
-        };
+        glUniform4fv      (location, count, (float*)data);
+        CHECK_OGL_ERROR;
+    }},
+    };
 
 
     static int                                    _currentId;
