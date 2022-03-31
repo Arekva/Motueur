@@ -62,10 +62,10 @@ bool LoadModel::loadModel(const char* path, vector<unsigned short>& indices, vec
         tangent.push_back(glm::vec3(n.x, n.y, n.z));
     }
 
-    // Fill vertices tangents
-    tangent.reserve(mesh->mNumVertices);
+    // Fill vertices bitangents
+    bitangent.reserve(mesh->mNumVertices);
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-        aiVector3D n = mesh->mTangents[i];
+        aiVector3D n = mesh->mBitangents[i];
         bitangent.push_back(glm::vec3(n.x, n.y, n.z));
     }
 

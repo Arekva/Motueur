@@ -56,6 +56,7 @@ const float ratio = (float)width / height;
 double posy, posx;
 float lightPow = 10000.0;
 bool mouseActive;
+int nmapActive = 1;
 
 glm::vec3 LightsWorld[32];
 glm::vec4 LightsColor[32];
@@ -163,7 +164,7 @@ void run(GLFW::WindowInstance* win_handle) {
     std::vector<glm::vec3> normalsobj;
     std::vector<glm::vec3> tangent;
     std::vector<glm::vec3> bitangent;
-    bool res = m.loadModel("assets\\models\\echelle.fbx", indices, vertices, uvs, normalsobj, tangent, bitangent);
+    bool res = m.loadModel("assets\\models\\crate.obj", indices, vertices, uvs, normalsobj, tangent, bitangent);
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -380,6 +381,7 @@ void run(GLFW::WindowInstance* win_handle) {
         material->set_data("LightsWorld[0]", LightsWorld, LightNbr);
         material->set_data("LightsColor[0]", LightsColor, LightNbr);
         material->set_data("LightNbr", &LightNbr);
+        material->set_data("nmapActive", &nmapActive);
         material->use();
 
         for (size_t i = 0; i < 10; i++)
@@ -402,7 +404,7 @@ void run(GLFW::WindowInstance* win_handle) {
         glDisableVertexAttribArray(2);
         glDisableVertexAttribArray(3);
         glDisableVertexAttribArray(4);
-
+        
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -420,9 +422,9 @@ void run(GLFW::WindowInstance* win_handle) {
         ImGui::SliderFloat("lx", &lx, 0.0, 100.0f);
         ImGui::SliderFloat("ly", &ly, 0.0, 100.0f);
         ImGui::SliderFloat("lz", &lz, 0.0, 100.0f);
-
-        ImGui::End();
+        ImGui::SliderInt("Active Nmap", &nmapActive, 0, 1);
         
+        ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         LightsWorld[0] = glm::vec3(lx, ly, lz);

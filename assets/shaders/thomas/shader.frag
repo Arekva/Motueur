@@ -11,10 +11,19 @@ uniform vec4 LightsColor[32];
 uniform vec3 LightsWorld[32];
 uniform mat4 View;
 uniform int LightNbr;
+uniform int nmapActive;
 
-void main(){
+void main(){ 
+    vec3 n; 
+    if(nmapActive==1)
+    {
     vec3 tex_normal = normalize((texture(NMap, UV).rgb)*2 - 1.0);
-    vec3 n = TBN*tex_normal;
+    n = TBN*tex_normal;
+    }
+    else
+    {
+    n = normalize(normal);
+    }
     vec3 recievedLight = vec3(0,0,0);
     for(int i =0; i<min(32,LightNbr);i++)
     {
