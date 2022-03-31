@@ -20,10 +20,7 @@ void main(){
     vec3 tex_normal = normalize((texture(NMap, UV).rgb)*2 - 1.0);
     n = TBN*tex_normal;
     }
-    else
-    {
-    n = normalize(normal);
-    }
+    else n = normalize(normal);
     vec3 recievedLight = vec3(0,0,0);
     for(int i =0; i<min(32,LightNbr);i++)
     {
