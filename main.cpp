@@ -66,6 +66,17 @@ int LightNbr;
 
 float lx = 0, ly = 0, lz = 0;
 
+struct NBodyObject {
+    float radius;
+    float mass;
+    glm::vec3 velocity;
+    glm::vec3 position;
+};
+
+
+glm::mat4* nbody_models;
+NBodyObject* nbody_objects;
+
 bool init_glfw() {
     if (!GLFW::Init()){
         std::cout << "Failed to init GLFW." << std::endl;
@@ -132,12 +143,55 @@ void CreateLights(int LightsTobuild)
     LightNbr = LightsTobuild;
 }
 
+inline float random_float()
+{
+    return rand() / (float)RAND_MAX;
+}
+
+inline float map(float value, float old_low, float old_high, float new_low, float new_high) {
+    return new_low + (value - old_low) * (new_high - new_low) / (old_high - old_low);
+}
+
 void resize(Window* win, int w, int h)
 {
     width  = w;
     height = h;
     glViewport(0.0F, 0.0F, width, height);
     Projection = glm::perspective(glm::radians(70.0f), (float)width / (float)height, 0.1f, 10000.0f);
+}
+
+void nbody(size_t count, float delta_time)
+{
+    for (int i = 0; i < count; ++i) {
+        NBodyObject* object = &nbody_objects[i];
+        const float G = 6.67408E-11F;
+
+        glm::vec3 added_vel = glm::vec3(0.0);
+
+        for (int j = 0; j < count; ++j) {
+            if (i == j) continue;
+
+            NBodyObject* other = &nbody_objects[j];
+
+
+            glm::vec3 dir = -glm::normalize(object->position - other->position);
+
+            float dst = glm::distance(object->position, other->position) - (other->radius + object->radius);
+            dst *= dst;
+
+            glm::vec3 force = dir * G*(object->mass * other->mass) / dst;
+
+            added_vel += force;
+        }
+
+        added_vel *= delta_time;
+
+        object->velocity += added_vel;
+
+        object->position += object->velocity;
+
+        nbody_models[i] = glm::mat4(1.0f) * glm::translate(glm::vec3(object->position.x, object->position.y, object->position.z));
+    }
 }
 
 void run(GLFW::WindowInstance* win_handle) {
@@ -198,32 +252,45 @@ void run(GLFW::WindowInstance* win_handle) {
     Texture nmap("assets/textures/cratenormal.png");
     material->set_data("NMap", &nmap);
 
-    bool someBoolean;
-    float speed;
-
     glDepthFunc(GL_LESS);
 
     resize(window, width, height);
     window->SetSizeCallback(resize);
 
-    const size_t cube_size  = 100;
+    const size_t cube_size  = 5;
     const size_t cube_volume = cube_size * cube_size * cube_size;
 
-    glm::mat4* models = (glm::mat4*)malloc(cube_volume * sizeof(glm::mat4));
+    nbody_objects = (NBodyObject*)malloc(cube_volume * sizeof(NBodyObject));
+
+    nbody_models = (glm::mat4*)malloc(cube_volume * sizeof(glm::mat4));
+
     for (int i = 0; i < cube_volume; ++i) {
         size_t x = i % cube_size;
         size_t y = (i / cube_size) % cube_size;
         size_t z = i / (cube_size*cube_size);
 
-        models[i] = glm::mat4(1.0f) * glm::translate(glm::vec3(x * 10, y * 10, z * 10));
-    }
+        glm::vec3 position(x * 10, y * 10, z * 10);
+        nbody_models[i] = glm::mat4(1.0f) * glm::translate(glm::vec3(position.x, position.y, position.z));
 
+        float speed = map(random_float(), 0.0, 1.0, 0.02, 0.1);
+        nbody_objects[i] = {
+            .radius = 1.0,
+            .mass = map(random_float(), 0.0, 1.0, 50, 150),
+            .velocity = speed * glm::normalize(glm::vec3(
+                    map(random_float(), 0.0, 1.0, -1.0, 1.0),
+                    map(random_float(), 0.0, 1.0, -1.0, 1.0),
+                    map(random_float(), 0.0, 1.0, -1.0, 1.0)
+            )),
+            .position = position
+        };
+
+    }
 
     GLuint matricesSSBO;
     glGenBuffers(1, &matricesSSBO);
+
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, matricesSSBO);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, cube_volume * sizeof(glm::mat4), models, GL_STATIC_DRAW); //sizeof(data) only works for statically sized C/C++ arrays.
-    free(models);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, cube_volume * sizeof(glm::mat4), nbody_models, GL_STATIC_DRAW);
 
     bool should_close = false;
     while (!should_close) {
@@ -327,6 +394,12 @@ void run(GLFW::WindowInstance* win_handle) {
         material->set_data("nmapActive", &nmapActive);
         material->use();
         mesh->use();
+
+        // POUR ACTIVER LA GRAVITE QUI MARCHE PAS TROP BIEN
+        // nbody(cube_volume, Time::delta());
+
+        // glBindBuffer(GL_SHADER_STORAGE_BUFFER, matricesSSBO);
+        // glBufferData(GL_SHADER_STORAGE_BUFFER, cube_volume * sizeof(glm::mat4), nbody_models, GL_STATIC_DRAW);
 
         mesh->draw_instanced(material, matricesSSBO, cube_volume);
 
