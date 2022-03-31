@@ -26,8 +26,11 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
+
 using namespace GLFW;
 using namespace Motueur;
+
+
 
 extern "C" {
     _declspec(dllexport) uint32_t NvOptimusEnablement = 0x00000001;
@@ -162,7 +165,7 @@ void run(GLFW::WindowInstance* win_handle) {
 
     CreateLights(32);
 
-    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>("assets/models/Suzanne.obj");
+    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>("assets/models/crate.obj");
 
     std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/thomas");
 
@@ -184,7 +187,7 @@ void run(GLFW::WindowInstance* win_handle) {
 
     Texture tex("assets/textures/cratediffuse.png");
 
-    std::unique_ptr<Material> material = std::make_unique<Material>(shader);
+    std::shared_ptr<Material> material = std::make_shared<Material>(shader);
     material->set_data("Texture", &tex);
 
     Texture nmap("assets/textures/cratenormal.png");
@@ -197,6 +200,25 @@ void run(GLFW::WindowInstance* win_handle) {
 
     resize(window, width, height);
     window->SetSizeCallback(resize);
+
+    const size_t cube_size  = 100;
+    const size_t cube_volume = cube_size * cube_size * cube_size;
+
+    glm::mat4* models = (glm::mat4*)malloc(cube_volume * sizeof(glm::mat4));
+    for (int i = 0; i < cube_volume; ++i) {
+        size_t x = i % cube_size;
+        size_t y = (i / cube_size) % cube_size;
+        size_t z = i / (cube_size*cube_size);
+
+        models[i] = glm::mat4(1.0f) * glm::translate(glm::vec3(x * 5, y * 5, z * 5));
+    }
+
+
+    GLuint matricesSSBO;
+    glGenBuffers(1, &matricesSSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, matricesSSBO);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, cube_volume * sizeof(glm::mat4), models, GL_STATIC_DRAW); //sizeof(data) only works for statically sized C/C++ arrays.
+    free(models);
 
     bool should_close = false;
     while (!should_close) {
@@ -280,7 +302,7 @@ void run(GLFW::WindowInstance* win_handle) {
         glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+        material->set_data("Projection", &Projection);
         material->set_data("View", &View);
         material->set_data("LightsWorld[0]", LightsWorld, LightNbr);
         material->set_data("LightsColor[0]", LightsColor, LightNbr);
@@ -288,19 +310,17 @@ void run(GLFW::WindowInstance* win_handle) {
         material->use();
         mesh->use();
 
-        for (size_t i = 0; i < 10; i++)
+        mesh->draw_instanced(material, matricesSSBO, cube_volume);
+
+        /*for (size_t i = 0; i < 10; i++)
         {
             for (size_t j = 0; j < 20; j++)
             {
                 glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 5, 0, j * 5));
-                glm::mat4 mvp = Projection * View * Model;
                 material->set_data("Model", &Model);
-                material->set_data("MVP", &mvp);
-                mesh->draw();
-                //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesbuffer);
-                //glDrawElements(GL_TRIANGLES, indices.size(),GL_UNSIGNED_SHORT, (void*)0); // Starting from vertex 0; 3 vertices total -> 1 triangle
+                mesh->draw(material);
             }
-        }
+        }*/
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -328,6 +348,8 @@ void run(GLFW::WindowInstance* win_handle) {
 
         window->SwapBuffers();
     }
+
+    glDeleteBuffers(1, &matricesSSBO);
 }
 
 int main() {

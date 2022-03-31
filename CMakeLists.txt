@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(
         Motueur main.cpp keyboard.cpp keyboard.hpp vertex.hpp mesh.cpp mesh.hpp time.cpp time.hpp
-        material.cpp material.hpp shader.cpp shader.hpp texture.cpp texture.hpp skysphere.cpp skysphere.hpp)
+        material.cpp material.hpp shader.cpp shader.hpp texture.cpp texture.hpp skysphere.cpp skysphere.hpp global.hpp)
 
 include(cmake/glew.cmake)
 include(cmake/assimp.cmake)

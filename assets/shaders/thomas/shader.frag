@@ -12,6 +12,7 @@ uniform vec3 LightsWorld[32];
 uniform mat4 View;
 uniform int LightNbr;
 
+
 void main(){
     vec3 tex_normal = normalize((texture(NMap, UV).rgb)*2 - 1.0);
     vec3 n = TBN*tex_normal;
