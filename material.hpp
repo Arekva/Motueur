@@ -25,7 +25,7 @@ namespace Motueur {
 
 inline void check_ogl_error() {
 #if _DEBUG
-    do { if (glGetError() != GL_NONE) __debugbreak(); } while (false);
+    //do { if (glGetError() != GL_NONE) __debugbreak(); } while (false);
 #endif
 }
 namespace Motueur {
@@ -96,7 +96,7 @@ private:
                 }
             }
             else {
-                std::cout << "Material uniform \"" << name << "\" do not exist or is not active in the shader program.";
+              //  std::cout << "Material uniform \"" << name << "\" do not exist or is not active in the shader program.";
             }
         }
 

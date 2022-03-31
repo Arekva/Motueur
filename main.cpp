@@ -163,14 +163,19 @@ void run(GLFW::WindowInstance* win_handle) {
 
     CreateLights(32);
 
-    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>("assets/models/Suzanne.obj");
 
-    std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/thomas");
+    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>("assets/models/crate.obj");
+
+    std::unique_ptr<Mesh> skysphere = std::make_unique<Mesh>("assets/models/skysphere.obj");
+    std::shared_ptr<Shader> skyShader = std::make_unique<Shader>("assets/shaders/skysphere");
+    std::unique_ptr<Material> skyMat = std::make_unique<Material>(skyShader);
+    skyMat->doWriteDepth = false;
+    skyMat->doDepthTest = false;
+
+    std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/meshes");
 
     c.position = glm::vec3(20, 20, 10);
     c.up = glm::vec3(0, 1, 0);
-
-
 
     glm::mat4 View = glm::lookAt(
         c.position,
@@ -281,7 +286,20 @@ void run(GLFW::WindowInstance* win_handle) {
         glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glm::mat4 sky_view = glm::lookAt(
+            glm::vec3(0, 0, 0),
+            glm::vec3(0, 0, 0) - c.front,
+            glm::vec3(0, 1, 0)
+        );
 
+        skyMat->set_data("Projection", &Projection);
+        skyMat->set_data("View", &sky_view);
+
+        skyMat->use();
+        skysphere->use();
+        skysphere->draw();
+
+        material->set_data("Projection", &Projection);
         material->set_data("View", &View);
         material->set_data("LightsWorld[0]", LightsWorld, LightNbr);
         material->set_data("LightsColor[0]", LightsColor, LightNbr);
@@ -294,7 +312,7 @@ void run(GLFW::WindowInstance* win_handle) {
         {
             for (size_t j = 0; j < 20; j++)
             {
-                glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 5, 0, j * 5));
+                glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 6, 0, j * 6));
                 glm::mat4 mvp = Projection * View * Model;
                 material->set_data("Model", &Model);
                 material->set_data("MVP", &mvp);

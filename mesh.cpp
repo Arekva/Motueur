@@ -138,9 +138,7 @@ void Mesh::use() {
 void Mesh::draw() {
     if (!_indexCount) { glDrawArrays(GL_TRIANGLES, 0, _vertexCount); }
     else {
-        std::cout << "a" << std::endl;
         glDrawElements(GL_TRIANGLES, _indexCount, _indexType, (void*)0);
-        std::cout << "b" << std::endl;
     }
 }
 

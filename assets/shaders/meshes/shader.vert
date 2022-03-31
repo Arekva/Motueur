@@ -11,6 +11,7 @@ out vec3 pos;
 out mat3 TBN;
 
 uniform mat4 MVP;
+uniform mat4 Projection;
 uniform mat4 View;
 uniform mat4 Model;
 uniform vec3 LightsWorld[32];
@@ -18,7 +19,7 @@ uniform vec4 LightsColor[32];
 uniform int LightNbr;
 
 void main(){    
-    gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
+    gl_Position = Projection *View * Model* vec4(vertexPosition_modelspace,1);
     vec3 Position_worldspace = (Model * vec4(vertexPosition_modelspace,1)).xyz;  
     vec3 vertexPosition_cameraspace = ( View * Model * vec4(vertexPosition_modelspace,1)).xyz;
     mat3 MV = mat3(View * Model);
