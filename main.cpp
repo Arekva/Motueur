@@ -51,12 +51,13 @@ void init_imgui(GLFWwindow* window) {
 }
 int width = 800;
 int height = 600;
-float movespeed = 10.0f;
+float movespeed = 200.0f;
 float mousespeed = 0.1f;
 const float ratio = (float)width / height;
 double posy, posx;
 float lightPow = 10000.0;
 bool mouseActive;
+int nmapActive = 1;
 glm::mat4 Projection;
 
 glm::vec3 LightsWorld[32];
@@ -82,6 +83,8 @@ bool init_glfw() {
 
     GLFW::WindowHint::Generic(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
+    GLFW::WindowHint::Generic(GLFW_SAMPLES, 8);
+
     return true;
 }
 
@@ -100,9 +103,6 @@ bool startup(GLFW::WindowInstance** win_handle) {
     
     init_imgui(reinterpret_cast<GLFWwindow*>(window));
 
-    // engine
-    Mesh::init();
-
     Keyboard::init(window);
 
     Time::init();
@@ -117,7 +117,6 @@ void shutdown(GLFW::WindowInstance* win_handle) {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    Mesh::terminate();
 
     GLFW::Terminate();
 }
@@ -152,6 +151,8 @@ void run(GLFW::WindowInstance* win_handle) {
     glDebugMessageControl(
         GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
+    glEnable(GL_MULTISAMPLE);
+
     window->GetCursorPos(& posx, & posy);
 
     glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -167,12 +168,16 @@ void run(GLFW::WindowInstance* win_handle) {
 
     std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>("assets/models/crate.obj");
 
-    std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/thomas");
+    std::unique_ptr<Mesh> skysphere = std::make_unique<Mesh>("assets/models/skysphere.obj");
+    std::shared_ptr<Shader> skyShader = std::make_unique<Shader>("assets/shaders/skysphere");
+    std::shared_ptr<Material> skyMat = std::make_unique<Material>(skyShader);
+    skyMat->doWriteDepth = false;
+    skyMat->doDepthTest = false;
+
+    std::shared_ptr<Shader> shader = std::make_unique<Shader>("assets/shaders/meshes");
 
     c.position = glm::vec3(20, 20, 10);
     c.up = glm::vec3(0, 1, 0);
-
-
 
     glm::mat4 View = glm::lookAt(
         c.position,
@@ -210,7 +215,7 @@ void run(GLFW::WindowInstance* win_handle) {
         size_t y = (i / cube_size) % cube_size;
         size_t z = i / (cube_size*cube_size);
 
-        models[i] = glm::mat4(1.0f) * glm::translate(glm::vec3(x * 5, y * 5, z * 5));
+        models[i] = glm::mat4(1.0f) * glm::translate(glm::vec3(x * 10, y * 10, z * 10));
     }
 
 
@@ -302,11 +307,24 @@ void run(GLFW::WindowInstance* win_handle) {
         glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glm::mat4 sky_view = glm::lookAt(
+            glm::vec3(0, 0, 0),
+            glm::vec3(0, 0, 0) - c.front,
+            glm::vec3(0, 1, 0)
+        );
+
+        skyMat->set_data("Projection", &Projection);
+        skyMat->set_data("View", &sky_view);
+        
+        skyMat->use();
+        skysphere->use();
+        skysphere->draw(skyMat);
         material->set_data("Projection", &Projection);
         material->set_data("View", &View);
         material->set_data("LightsWorld[0]", LightsWorld, LightNbr);
         material->set_data("LightsColor[0]", LightsColor, LightNbr);
         material->set_data("LightNbr", &LightNbr);
+        material->set_data("nmapActive", &nmapActive);
         material->use();
         mesh->use();
 
@@ -321,7 +339,6 @@ void run(GLFW::WindowInstance* win_handle) {
                 mesh->draw(material);
             }
         }*/
-
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -339,9 +356,9 @@ void run(GLFW::WindowInstance* win_handle) {
         ImGui::SliderFloat("lx", &lx, 0.0, 100.0f);
         ImGui::SliderFloat("ly", &ly, 0.0, 100.0f);
         ImGui::SliderFloat("lz", &lz, 0.0, 100.0f);
-
-        ImGui::End();
+        ImGui::SliderInt("Active Nmap", &nmapActive, 0, 1);
         
+        ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         LightsWorld[0] = glm::vec3(lx, ly, lz);

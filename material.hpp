@@ -18,9 +18,9 @@ namespace Motueur {
 
     struct MaterialData {
         ShaderUniformData Uniform;
-        UniformSetter     Setter ;
-        int               Count  ;
-        void*             Data   ;
+        UniformSetter     Setter;
+        int               Count;
+        void* Data;
     };
 
 }
@@ -54,30 +54,29 @@ private:
             glUniform1i(location, index);
             check_ogl_error();
         }},
-        { GL_FLOAT_VEC4, [] (Material* material, GLint location, int count, void* data) -> void {
-            
-            glUniform4fv      (location, count, (float*)data);
+        { GL_FLOAT_VEC4, [](Material* material, GLint location, int count, void* data) -> void {
+
+            glUniform4fv(location, count, (float*)data);
             check_ogl_error();
         }},
         };
 
     static int                                    _currentId;
+    private:
+        std::shared_ptr<Shader>                       _shader;
+        std::unordered_map<std::string, MaterialData> _data;
+        int                                           _textureIndex;
+        void* _data_memory;
+        int                                           _id;
 
-private:
-    std::shared_ptr<Shader>                       _shader;
-    std::unordered_map<std::string, MaterialData> _data  ;
-    int                                           _textureIndex;
-    void*                                         _data_memory;
-    int                                           _id;
 
+    public:
+        bool doWriteDepth = true;
+        bool doDepthTest = true;
 
-public:
-    bool doWriteDepth = true;
-    bool doDepthTest  = true;
-
-public :
-    Material(std::shared_ptr<Shader> shader);
-    ~Material();
+    public:
+        Material(std::shared_ptr<Shader> shader);
+        ~Material();
 
         void use();
 
@@ -94,7 +93,8 @@ public :
                 }
             }
             else {
-                // std::cout << "Material uniform \"" << name << "\" do not exist or is not active in the shader program." << std::endl;
+              //  std::cout << "Material uniform \"" << name << "\" do not exist or is not active in the shader program.";
+
             }
         }
 
