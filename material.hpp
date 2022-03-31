@@ -30,28 +30,28 @@ inline void check_ogl_error() {
 }
 namespace Motueur {
 
-    class Material {
-    private:
-        const std::unordered_map<GLenum, UniformSetter>  setters =
-        {
-        { GL_INT       , [](Material* material, GLint location, int count, void* data) -> void {
-            glUniform1i(location, *(int*)data);
-            check_ogl_error();
-        }},
-        { GL_FLOAT     , [](Material* material, GLint location, int count, void* data) -> void {
-            glUniform1f(location, *(float*)data);
-            check_ogl_error();
-        }},
-        { GL_FLOAT_MAT4, [](Material* material, GLint location, int count, void* data) -> void {
-            glUniformMatrix4fv(location, count, false, glm::value_ptr(*(glm::mat4*)data));
-            check_ogl_error();
-        }},
-        { GL_FLOAT_VEC3, [](Material* material, GLint location, int count, void* data) -> void {
-            glUniform3fv(location, count, (float*)data);
-            check_ogl_error();
-        }},
-        { GL_SAMPLER_2D, [](Material* material, GLint location, int count, void* data) -> void {
-            const int index = material->_textureIndex;
+class Material {
+private:
+    const std::unordered_map<GLenum, UniformSetter>  setters =
+    {
+    { GL_INT       , [] (Material* material, GLint location, int count, void* data) -> void {
+        glUniform1i       (location, *(int*)data  );
+        check_ogl_error();
+    }},
+    { GL_FLOAT     , [] (Material* material, GLint location, int count, void* data) -> void {
+        glUniform1f       (location, *(float*)data);
+        check_ogl_error();
+    }},
+    { GL_FLOAT_MAT4, [] (Material* material, GLint location, int count, void* data) -> void {
+        glUniformMatrix4fv(location, count, false, glm::value_ptr(*(glm::mat4*)data));
+        check_ogl_error();
+    }},
+    { GL_FLOAT_VEC3, [] (Material* material, GLint location, int count, void* data) -> void {
+        glUniform3fv      (location, count, (float*)data);
+        check_ogl_error();
+    }},
+    { GL_SAMPLER_2D, [] (Material* material, GLint location, int count, void* data) -> void {
+        const int index = material->_textureIndex;
 
             ((Texture*)data)->Use(GL_TEXTURE0 + index);
             glUniform1i(location, index);
@@ -64,9 +64,7 @@ namespace Motueur {
         }},
         };
 
-
-        static int                                    _currentId;
-
+    static int                                    _currentId;
     private:
         std::shared_ptr<Shader>                       _shader;
         std::unordered_map<std::string, MaterialData> _data;
