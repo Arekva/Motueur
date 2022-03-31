@@ -39,6 +39,7 @@ void main() {
     vec3 Position_worldspace = (model * vec4(vertexPosition_modelspace,1)).xyz;  
     vec3 vertexPosition_cameraspace = ( View * model * vec4(vertexPosition_modelspace,1)).xyz;
     mat3 MV = mat3(View * model);
+
     vec3 normalsCam = MV * normalize(normals); 
     vec3 tangentCam = MV * normalize(tangent); 
     vec3 bitangentCam = MV * normalize(bitangent); 

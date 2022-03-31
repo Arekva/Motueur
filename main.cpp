@@ -51,7 +51,7 @@ void init_imgui(GLFWwindow* window) {
 }
 int width = 800;
 int height = 600;
-float movespeed = 10.0f;
+float movespeed = 200.0f;
 float mousespeed = 0.1f;
 const float ratio = (float)width / height;
 double posy, posx;
@@ -83,6 +83,8 @@ bool init_glfw() {
 
     GLFW::WindowHint::Generic(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
+    GLFW::WindowHint::Generic(GLFW_SAMPLES, 8);
+
     return true;
 }
 
@@ -101,9 +103,6 @@ bool startup(GLFW::WindowInstance** win_handle) {
     
     init_imgui(reinterpret_cast<GLFWwindow*>(window));
 
-    // engine
-    Mesh::init();
-
     Keyboard::init(window);
 
     Time::init();
@@ -118,7 +117,6 @@ void shutdown(GLFW::WindowInstance* win_handle) {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    Mesh::terminate();
 
     GLFW::Terminate();
 }
@@ -153,6 +151,8 @@ void run(GLFW::WindowInstance* win_handle) {
     glDebugMessageControl(
         GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
+    glEnable(GL_MULTISAMPLE);
+
     window->GetCursorPos(& posx, & posy);
 
     glfwSetInputMode(glfw_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -170,7 +170,7 @@ void run(GLFW::WindowInstance* win_handle) {
 
     std::unique_ptr<Mesh> skysphere = std::make_unique<Mesh>("assets/models/skysphere.obj");
     std::shared_ptr<Shader> skyShader = std::make_unique<Shader>("assets/shaders/skysphere");
-    std::unique_ptr<Material> skyMat = std::make_unique<Material>(skyShader);
+    std::shared_ptr<Material> skyMat = std::make_unique<Material>(skyShader);
     skyMat->doWriteDepth = false;
     skyMat->doDepthTest = false;
 
@@ -215,7 +215,7 @@ void run(GLFW::WindowInstance* win_handle) {
         size_t y = (i / cube_size) % cube_size;
         size_t z = i / (cube_size*cube_size);
 
-        models[i] = glm::mat4(1.0f) * glm::translate(glm::vec3(x * 5, y * 5, z * 5));
+        models[i] = glm::mat4(1.0f) * glm::translate(glm::vec3(x * 10, y * 10, z * 10));
     }
 
 
@@ -315,10 +315,10 @@ void run(GLFW::WindowInstance* win_handle) {
 
         skyMat->set_data("Projection", &Projection);
         skyMat->set_data("View", &sky_view);
-
+        
         skyMat->use();
         skysphere->use();
-        skysphere->draw();
+        skysphere->draw(skyMat);
         material->set_data("Projection", &Projection);
         material->set_data("View", &View);
         material->set_data("LightsWorld[0]", LightsWorld, LightNbr);
