@@ -257,7 +257,7 @@ void run(GLFW::WindowInstance* win_handle) {
     resize(window, width, height);
     window->SetSizeCallback(resize);
 
-    const size_t cube_size  = 5;
+    const size_t cube_size  = 75;
     const size_t cube_volume = cube_size * cube_size * cube_size;
 
     nbody_objects = (NBodyObject*)malloc(cube_volume * sizeof(NBodyObject));
