@@ -9,7 +9,10 @@ class Mesh {
 private:
     static GLuint _vaos[1]; // VAO = Vertex Attribute Object
 
+public:
     static inline GLuint get_standard_vao();
+
+private:
     static void create_vaos();
 
 
@@ -20,6 +23,9 @@ private:
     inline GLuint get_index_buffer();
 
     GLenum _indexType;
+
+    size_t _vertexCount;
+    size_t _indexCount;
 
     void create_from_data(const Vertex* vertices, size_t vertex_count, const unsigned int* indices, size_t index_count);
 public:
@@ -33,7 +39,8 @@ public:
 
     ~Mesh();
 
-    void Draw(GLuint transform_buffer, size_t transform_count);
+    void draw();
+    void draw_instancied(GLuint transform_buffer, size_t transform_count);
 };
 
 } // namespace Motueur

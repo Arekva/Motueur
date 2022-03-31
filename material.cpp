@@ -37,6 +37,15 @@ void Material::use() {
 
     _shader->use();
 
+    if (doDepthTest) {
+        glEnable(GL_DEPTH_TEST);
+    } else {
+        glDisable(GL_DEPTH_TEST);
+    }
+
+    glDepthMask(doWriteDepth);
+
+
     _textureIndex = 0;
 
     for (const auto& uniform: _data) {
