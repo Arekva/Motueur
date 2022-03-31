@@ -1,11 +1,14 @@
 #include "GL/glew.h"
 
 #include "mesh.hpp"
+#include "material.hpp"
 #include <../../assimp/include/assimp/Importer.hpp>
 #include <../../assimp/include/assimp/scene.h>
 #include <../../assimp/include/assimp/postprocess.h>
 
 #include <iostream>
+
+#include "global.hpp"
 
 using namespace Motueur;
 
@@ -135,14 +138,23 @@ void Mesh::use() {
     glEnableVertexAttribArray(4);
 }
 
-void Mesh::draw() {
+void Mesh::draw(std::shared_ptr<Material> material) {
+    const unsigned int not_instanced = 0;
+    material->set_data("IsInstanced", &not_instanced);
     if (!_indexCount) { glDrawArrays(GL_TRIANGLES, 0, _vertexCount); }
-    else {
-        glDrawElements(GL_TRIANGLES, _indexCount, _indexType, (void*)0);
-    }
+    else { glDrawElements(GL_TRIANGLES, _indexCount, _indexType, (void*)0); }
+
+    check_ogl_error();
 }
 
-void Mesh::draw_instancied(GLuint transform_buffer, size_t transform_count) {
-    // bind to "transforms"
-    // todo
+void Mesh::draw_instanced(std::shared_ptr<Material> material, GLuint transform_buffer, size_t transform_count) {
+    const unsigned int is_instanced = 1;
+    material->set_data("IsInstanced", &is_instanced);
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, transform_buffer);
+
+    if (!_indexCount) { glDrawArraysInstanced(GL_TRIANGLES, 0, transform_count, _vertexCount); }
+    else { glDrawElementsInstanced(GL_TRIANGLES, _indexCount, _indexType, (void*)0, transform_count); }
+
+    check_ogl_error();
 }

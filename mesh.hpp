@@ -1,9 +1,12 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include "vertex.hpp"
 
 namespace Motueur {
+
+class Material;
 
 class Mesh {
 private:
@@ -31,8 +34,8 @@ public:
     ~Mesh();
 
     void use();
-    void draw();
-    void draw_instancied(GLuint transform_buffer, size_t transform_count);
+    void draw(std::shared_ptr<Material> material);
+    void draw_instanced(std::shared_ptr<Material> material, GLuint transform_buffer, size_t transform_count);
 };
 
 } // namespace Motueur

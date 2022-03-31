@@ -8,6 +8,8 @@
 #include "shader.hpp"
 #include "texture.hpp"
 
+#include "global.hpp"
+
 namespace Motueur {
 
     class Material;
@@ -23,11 +25,6 @@ namespace Motueur {
 
 }
 
-inline void check_ogl_error() {
-#if _DEBUG
-    //do { if (glGetError() != GL_NONE) __debugbreak(); } while (false);
-#endif
-}
 namespace Motueur {
 
 class Material {
@@ -97,6 +94,7 @@ private:
             }
             else {
               //  std::cout << "Material uniform \"" << name << "\" do not exist or is not active in the shader program.";
+
             }
         }
 
