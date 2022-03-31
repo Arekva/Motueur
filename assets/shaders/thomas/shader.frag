@@ -13,15 +13,14 @@ uniform mat4 View;
 uniform int LightNbr;
 
 void main(){
-    vec3 tex_normal = normalize((texture(NMap, UV).rgb) * 2.0 - 1.0);
+    vec3 tex_normal = normalize((texture(NMap, UV).rgb)*2 - 1.0);
     vec3 n = TBN*tex_normal;
     vec3 recievedLight = vec3(0,0,0);
     for(int i =0; i<min(32,LightNbr);i++)
     {
         vec3 currlightPos = LightsWorld[i];
         vec3 currLight = currlightPos - pos;
-        //vec3 l = (View*vec4(normalize(currLight), 0)).xyz;
-        vec3 l = normalize(currLight);
+        vec3 l = (View*vec4(normalize(currLight), 0)).xyz;
         float cosTheta = clamp( dot( n,l ),0,1);
         float  sqdist = pow(distance(currLight,pos), 2);
         recievedLight += (LightsColor[i].rgb * LightsColor[i].w / sqdist) * cosTheta;  

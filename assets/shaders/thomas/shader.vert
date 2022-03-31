@@ -21,11 +21,11 @@ void main(){
     gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
     vec3 Position_worldspace = (Model * vec4(vertexPosition_modelspace,1)).xyz;  
     vec3 vertexPosition_cameraspace = ( View * Model * vec4(vertexPosition_modelspace,1)).xyz;
-    mat3 MV = mat3(Model*View);
+    mat3 MV = mat3(View * Model);
     vec3 normalsCam = MV * normalize(normals); 
     vec3 tangentCam = MV * normalize(tangent); 
     vec3 bitangentCam = MV * normalize(bitangent); 
-    TBN = transpose( mat3( tangentCam, bitangentCam, normalsCam));
+    TBN = mat3( tangentCam, bitangentCam, normalsCam);
     pos = (Model * vec4(vertexPosition_modelspace, 1.0)).xyz;
     UV = vertexUV;
     normal = (View*Model*vec4(normals,0)).xyz;

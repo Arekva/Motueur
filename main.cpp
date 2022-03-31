@@ -163,7 +163,7 @@ void run(GLFW::WindowInstance* win_handle) {
     std::vector<glm::vec3> normalsobj;
     std::vector<glm::vec3> tangent;
     std::vector<glm::vec3> bitangent;
-    bool res = m.loadModel("assets\\models\\Echelle.fbx", indices, vertices, uvs, normalsobj, tangent, bitangent);
+    bool res = m.loadModel("assets\\models\\echelle.fbx", indices, vertices, uvs, normalsobj, tangent, bitangent);
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -388,7 +388,7 @@ void run(GLFW::WindowInstance* win_handle) {
             {
                // for (size_t k = 0; k < 10; k++)
                 {
-                    glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 3,0, j * 3));
+                    glm::mat4 Model = glm::mat4(1.0f) * glm::translate(glm::vec3(i * 6,0, j * 6));
                     glm::mat4 mvp = Projection * View * Model;
                     material->set_data("Model", &Model);
                     material->set_data("MVP", &mvp);
@@ -418,14 +418,14 @@ void run(GLFW::WindowInstance* win_handle) {
             }
         }
         ImGui::SliderFloat("lx", &lx, 0.0, 100.0f);
-        ImGui::SliderFloat("ly", &lz, 0.0, 100.0f);
-        ImGui::SliderFloat("lz", &ly, 0.0, 100.0f);
+        ImGui::SliderFloat("ly", &ly, 0.0, 100.0f);
+        ImGui::SliderFloat("lz", &lz, 0.0, 100.0f);
 
         ImGui::End();
         
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        LightsWorld[0] = glm::vec3(lx, lz, ly);
+        LightsWorld[0] = glm::vec3(lx, ly, lz);
 
         window->SwapBuffers();
     }
